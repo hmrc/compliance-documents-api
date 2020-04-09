@@ -2,6 +2,7 @@ import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import play.core.PlayVersion.current
+import scoverage.ScoverageKeys
 
 val appName = "compliance-documents-api"
 
@@ -20,6 +21,11 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3" % "test, it",
   "org.mockito" % "mockito-all" % "1.10.19" % "test"
 )
+
+ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;"
+ScoverageKeys.coverageMinimum := 100
+ScoverageKeys.coverageFailOnMinimum := true
+ScoverageKeys.coverageHighlighting := true
 
 publishingSettings
 resolvers += Resolver.jcenterRepo
