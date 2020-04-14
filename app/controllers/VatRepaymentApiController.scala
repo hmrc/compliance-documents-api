@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.compliancedocumentsapi.controllers
+package controllers
 
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import config.AppConfig
+import javax.inject._
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import uk.gov.hmrc.compliancedocumentsapi.config.AppConfig
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class MicroserviceHelloWorldController @Inject()(appConfig: AppConfig, cc: ControllerComponents)
-    extends BackendController(cc) {
+class VatRepaymentApiController @Inject()(
+                                         appConfig: AppConfig,
+                                         cc: ControllerComponents
+                                       )(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("Hello world"))
+  def getResponse(): Action[AnyContent] = Action.async {implicit request: Request[AnyContent] =>
+    Future.successful(Accepted)
   }
+
+
+
 }
