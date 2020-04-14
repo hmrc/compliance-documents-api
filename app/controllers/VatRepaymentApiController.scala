@@ -18,6 +18,7 @@ package controllers
 
 import config.AppConfig
 import javax.inject._
+import play.api.libs.json.JsNull
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
@@ -25,14 +26,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class VatRepaymentApiController @Inject()(
-                                         appConfig: AppConfig,
-                                         cc: ControllerComponents
-                                       )(implicit ec: ExecutionContext) extends BackendController(cc) {
+                                           appConfig: AppConfig,
+                                           cc: ControllerComponents
+                                         )(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def getResponse(): Action[AnyContent] = Action.async {implicit request: Request[AnyContent] =>
-    Future.successful(Accepted)
+  def postRepaymentData(): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    val input = request.body.asJson.getOrElse(JsNull)
+    input match {
+      case JsNull => Future.successful(BadRequest)
+      case _ => Future.successful(Accepted(input))
+    }
+
   }
-
 
 
 }
