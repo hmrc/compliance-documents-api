@@ -16,35 +16,96 @@
 
 package scala.controllers
 
+import java.util.UUID
+
+import akka.stream.Materializer
 import config.AppConfig
+import connectors.ComplianceDocumentsConnector
 import controllers.routes
+import org.mockito.Matchers.{any, eq => eqTo}
+import org.mockito.Mockito
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.http.Status
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.http.HttpResponse
+
+import scala.concurrent.Future
 
 class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoSugar with GuiceOneAppPerSuite {
+  private val connector: ComplianceDocumentsConnector = mock[ComplianceDocumentsConnector]
+  override lazy val app: Application = {
+    import play.api.inject._
 
+    new GuiceApplicationBuilder()
+      .overrides(
+        bind[ComplianceDocumentsConnector].toInstance(connector)
+      ).build()
+  }
 
+  implicit lazy val materializer: Materializer = app.materializer
 
-
+  val correlationId: String = UUID.randomUUID().toString
 
   "The Vat Repayment Api Controller" when {
     "calling the getResponse route" should {
       "return Accepted if given a Json body" in {
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url).withJsonBody(Json.obj("a" -> "b"))).map{result =>
+
+        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId))(any(), any()))
+          .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.obj("a" -> "b")),
+            Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
+          )))
+
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+          .withHeaders("CorrelationId" -> correlationId)
+          .withJsonBody(Json.obj("a" -> "b"))).map { result =>
           status(result) shouldBe Status.ACCEPTED
           contentAsJson(result) shouldBe Json.obj("a" -> "b")
         }
 
       }
       "return BadRequest if not given a Json body" in {
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url).withBody("This is not Json!")).map{result =>
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+          .withHeaders("CorrelationId" -> correlationId)
+          .withBody("This is not Json!")).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
+          contentAsString(result) shouldBe ""
         }
+      }
+      "return BadRequest if given an invalid correlationId" in {
+
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+          .withHeaders("CorrelationId" -> "@£$*&")
+          .withJsonBody(Json.obj("a" -> "b"))).map { result =>
+          status(result) shouldBe Status.BAD_REQUEST
+          contentAsString(result) shouldBe "Invalid correlation ID!"
+        }
+      }
+      "return BadRequest if not given a correlationId" in {
+
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+          .withJsonBody(Json.obj("a" -> "b"))).map { result =>
+          status(result) shouldBe Status.BAD_REQUEST
+          contentAsString(result) shouldBe "Missing correlation ID!"
+        }
+      }
+
+      "return InternalServerError if the connector is unsuccessful in communicating with IF" in {
+        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId))(any(), any()))
+          .thenReturn(Future.successful(Left(())))
+
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+          .withHeaders("CorrelationId" -> correlationId)
+          .withJsonBody(Json.obj("a" -> "b"))).map { result =>
+          status(result) shouldBe Status.INTERNAL_SERVER_ERROR
+          contentAsJson(result) shouldBe Json.toJson("error" -> "internal server error test")
+        }
+
       }
     }
   }
