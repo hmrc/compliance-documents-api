@@ -42,10 +42,11 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
 
   val correlationId: String = "some-correlation-id"
   val authId: String = "Bearer some-token"
+  val documentId: Long = 4321L
 
   "The Compliance Documents connector" should {
     "return a 202 when given Json" in {
-      server.stubFor(post(urlEqualTo("/organisations/document"))
+      server.stubFor(post(urlEqualTo(s"/organisations/document/$documentId"))
         .withHeader(CONTENT_TYPE, matching(ContentTypes.JSON))
         .withHeader("CorrelationId", equalTo(correlationId))
         .withHeader("Authorization", equalTo(authId))
@@ -58,14 +59,14 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
         )
       )
 
-      whenReady(connector.vatRepayment(Json.obj("Case" -> "CSC-12394712"), correlationId)) {
+      whenReady(connector.vatRepayment(Json.obj("Case" -> "CSC-12394712"), correlationId, documentId)) {
         response =>
           response.right.get.status mustBe ACCEPTED
       }
     }
 
     "return a 400 when given invalid input" in {
-      server.stubFor(post(urlEqualTo("/organisations/document"))
+      server.stubFor(post(urlEqualTo(s"/organisations/document/$documentId"))
         .withHeader(CONTENT_TYPE, matching(ContentTypes.JSON))
         .withHeader("CorrelationId", equalTo(correlationId))
         .withHeader("Authorization", equalTo(authId))
@@ -78,14 +79,14 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
         )
       )
 
-      whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId)) {
+      whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId, documentId)) {
         response =>
           response.right.get.status mustBe BAD_REQUEST
       }
     }
 
     "return a 404 when attempting to connect to non-existent endpoint" in {
-      server.stubFor(post(urlEqualTo("/organisations/document"))
+      server.stubFor(post(urlEqualTo(s"/organisations/document/$documentId"))
         .withHeader(CONTENT_TYPE, matching(ContentTypes.JSON))
         .withHeader("CorrelationId", equalTo(correlationId))
         .withHeader("Authorization", equalTo(authId))
@@ -95,14 +96,14 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
         )
       )
 
-      whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId)) {
+      whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId, documentId)) {
         response =>
           response.right.get.status mustBe NOT_FOUND
       }
     }
 
     "return a 401 when attempting to connect without authentication" in {
-      server.stubFor(post(urlEqualTo("/organisations/document"))
+      server.stubFor(post(urlEqualTo(s"/organisations/document/$documentId"))
         .withHeader(CONTENT_TYPE, matching(ContentTypes.JSON))
         .withHeader("CorrelationId", equalTo(correlationId))
         .withHeader("Authorization", equalTo(authId))
@@ -112,7 +113,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
         )
       )
 
-      whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId)) {
+      whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId, documentId)) {
         response =>
           response.right.get.status mustBe UNAUTHORIZED
       }
@@ -121,7 +122,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
     "return a Left when call fails" in {
       def exception = aResponse.withFault(Fault.CONNECTION_RESET_BY_PEER)
 
-      server.stubFor(post(urlEqualTo("/organisations/document"))
+      server.stubFor(post(urlEqualTo(s"/organisations/document/$documentId"))
         .withHeader(CONTENT_TYPE, matching(ContentTypes.JSON))
         .withHeader("CorrelationId", equalTo(correlationId))
         .withHeader("Authorization", equalTo(authId))
@@ -129,7 +130,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
         .willReturn(exception)
       )
 
-      whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId)) {
+      whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId, documentId)) {
         response =>
           response.isLeft mustBe true
       }

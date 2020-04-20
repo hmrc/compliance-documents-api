@@ -28,10 +28,10 @@ trait ComplianceDocumentsConnectorParser {
 
     response.status match {
       case NOT_FOUND => Logger.warn(
-        logMessage(s"received a not found status when calling $url ( IF_CREATE_CASE_ENDPOINT_NOT_FOUND_RESPONSE )")
+        logMessage(s"received a not found status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_NOT_FOUND_RESPONSE )")
       )
       case BAD_REQUEST => Logger.warn(
-        logMessage(s"received a bad request status when calling $url ( IF_CREATE_CASE_ENDPOINT_BAD_REQUEST_RESPONSE )")
+        logMessage(s"received a bad request status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_BAD_REQUEST_RESPONSE )")
       )
       case status if status != ACCEPTED => Logger.warn(
         logMessage(s"received status $status when calling $url")

@@ -51,17 +51,17 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
   implicit lazy val materializer: Materializer = app.materializer
 
   val correlationId: String = UUID.randomUUID().toString
-
+  val documentId: Long = 5123095L
   "The Vat Repayment Api Controller" when {
     "calling the getResponse route" should {
       "return Accepted if given a Json body" in {
 
-        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId))(any(), any()))
+        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId))(any(), any()))
           .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.obj("a" -> "b")),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
 
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withHeaders("CorrelationId" -> correlationId)
           .withJsonBody(Json.obj("a" -> "b"))).map { result =>
           status(result) shouldBe Status.ACCEPTED
@@ -70,7 +70,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
 
       }
       "return BadRequest if not given a Json body" in {
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withHeaders("CorrelationId" -> correlationId)
           .withBody("This is not Json!")).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
@@ -79,7 +79,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
       "return BadRequest if given an invalid correlationId" in {
 
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withHeaders("CorrelationId" -> "@£$*&")
           .withJsonBody(Json.obj("a" -> "b"))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
@@ -88,7 +88,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
       "return BadRequest if not given a correlationId" in {
 
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withJsonBody(Json.obj("a" -> "b"))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
           contentAsString(result) shouldBe "Missing correlation ID!"
@@ -96,14 +96,17 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
 
       "return InternalServerError if the connector is unsuccessful in communicating with IF" in {
-        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId))(any(), any()))
+        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId))(any(), any()))
           .thenReturn(Future.successful(Left(())))
 
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData().url)
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withHeaders("CorrelationId" -> correlationId)
           .withJsonBody(Json.obj("a" -> "b"))).map { result =>
           status(result) shouldBe Status.INTERNAL_SERVER_ERROR
-          contentAsJson(result) shouldBe Json.toJson("error" -> "internal server error test")
+          contentAsJson(result) shouldBe Json.obj(
+            "code" -> "INTERNAL_SERVER_ERROR",
+            "message" ->  "Internal server error"
+          )
         }
 
       }

@@ -49,13 +49,15 @@ class ComplianceDocumentsConnector @Inject()(
     "Environment" -> iFEnvironment
   )
 
-  def vatRepayment(request: JsValue, correlationId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[Unit, HttpResponse]] = {
-    httpClient.POST[JsValue, HttpResponse](s"$ifBaseUrl$vatRepaymentUri", request, headers(correlationId))(
+  def vatRepayment(request: JsValue, correlationId: String, documentId: Long)
+                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[Unit, HttpResponse]] = {
+    httpClient.POST[JsValue, HttpResponse](s"$ifBaseUrl$vatRepaymentUri/$documentId", request, headers(correlationId))(
       implicitly, httpReads(correlationId), hc.copy(authorization = Some(Authorization(s"Bearer $bearerToken"))), ec
     ).map(Right.apply)
       .recover {
         case e: Exception =>
-          e.printStackTrace()
+          Logger.error(s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} (IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)"
+            , e)
           Left(())
       }
   }

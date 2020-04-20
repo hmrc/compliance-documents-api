@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.ComplianceDocumentsConnector
 import javax.inject._
-import play.api.libs.json.{JsNull, Json}
+import play.api.libs.json.{JsNull, JsObject, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import java.util.UUID
@@ -28,6 +28,7 @@ import controllers.actions.ValidateCorrelationIdHeaderAction
 import play.api.Logger
 import play.api.http.ContentTypes
 import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.api.controllers.ErrorInternalServerError
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,7 +40,7 @@ class VatRepaymentApiController @Inject()(
                                            cc: ControllerComponents
                                          )(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def postRepaymentData(): Action[AnyContent] = getCorrelationId.async { implicit request =>
+  def postRepaymentData(documentId: Long): Action[AnyContent] = getCorrelationId.async { implicit request =>
     val input = request.body.asJson.getOrElse(JsNull)
 
     Logger.debug(s"Input for controller postRepaymentData: $input")
@@ -48,8 +49,8 @@ class VatRepaymentApiController @Inject()(
       case JsNull => Future.successful(BadRequest)
       case _ =>
         Logger.info("Request received - passing on to IF.")
-        complianceDocumentsConnector.vatRepayment(Json.toJson(input), request.correlationId).map {
-          _.fold[Result](_ => InternalServerError(Json.toJson("error" -> "internal server error test")), mappingConnectorResponse)
+        complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId).map {
+          _.fold[Result](_ => InternalServerError(Json.toJson(ErrorInternalServerError)), mappingConnectorResponse)
         }
     }
 
