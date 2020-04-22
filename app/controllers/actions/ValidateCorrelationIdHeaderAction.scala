@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import play.api.Logger
 import play.api.mvc.Results.BadRequest
 import play.api.mvc._
-
+import models.responses.CorrelationIdMessages
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
@@ -30,7 +30,7 @@ class ValidateCorrelationIdHeaderAction @Inject()(val parser: BodyParsers.Defaul
                                                  (implicit val executionContext: ExecutionContext)
   extends ActionBuilder[RequestWithCorrelationId, AnyContent] {
 
-  val correlationIdRegex: Regex = """(^[A-Za-z0-9\-]{36}$)""".r
+  val correlationIdRegex: Regex = """(^[0-9a-fA-F]{8}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{12}$)""".r
 
   override def invokeBlock[A](request: Request[A], block: RequestWithCorrelationId[A] => Future[Result]): Future[Result] = {
     request.headers.get("CorrelationId").map {
@@ -43,12 +43,12 @@ class ValidateCorrelationIdHeaderAction @Inject()(val parser: BodyParsers.Defaul
         Logger.warn(
           ("ValidateCorrelationIdHeaderAction", "invokeBlock", s"invalid CorrelationId found in request $x").toString
         )
-        Future.successful(BadRequest("Invalid correlation ID!"))
+        Future.successful(BadRequest(CorrelationIdMessages.invalid))
     }.getOrElse {
       Logger.warn(
         ("ValidateCorrelationIdHeaderAction", "invokeBlock", "failed to retrieve CorrelationId in request").toString
       )
-      Future.successful(BadRequest("Missing correlation ID!"))
+      Future.successful(BadRequest(CorrelationIdMessages.missing))
     }
   }
 }

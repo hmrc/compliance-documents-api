@@ -19,7 +19,7 @@ package controllers
 import config.AppConfig
 import connectors.ComplianceDocumentsConnector
 import javax.inject._
-import play.api.libs.json.{JsNull, JsObject, Json}
+import play.api.libs.json.{JsNull, JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import java.util.UUID
@@ -40,7 +40,7 @@ class VatRepaymentApiController @Inject()(
                                            cc: ControllerComponents
                                          )(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def postRepaymentData(documentId: Long): Action[AnyContent] = getCorrelationId.async { implicit request =>
+  def postRepaymentData(documentId: String): Action[AnyContent] = getCorrelationId.async { implicit request =>
     val input = request.body.asJson.getOrElse(JsNull)
 
     Logger.debug(s"Input for controller postRepaymentData: $input")
@@ -48,27 +48,16 @@ class VatRepaymentApiController @Inject()(
     input match {
       case JsNull => Future.successful(BadRequest)
       case _ =>
-        Logger.info("Request received - passing on to IF.")
-        complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId).map {
-          _.fold[Result](_ => InternalServerError(Json.toJson(ErrorInternalServerError)), mappingConnectorResponse)
+        Logger.info(s"Request received - passing on to IF. Correlation ID: ${request.correlationId}")
+        complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId.toLong).map {
+          _.fold[Result](_ => InternalServerError(Json.toJson(ErrorInternalServerError)), responseMapper)
         }
     }
-
   }
 
-  private def mappingConnectorResponse(response: HttpResponse): Result = {
-    val excludedHeaders = List(CONTENT_TYPE, CONTENT_LENGTH)
-
-    Logger.debug(s"Excluded: $excludedHeaders")
-
-    val headers = for {
-      (key, values) <- response.allHeaders
-      if !excludedHeaders.contains(key)
-    } yield key -> values.mkString(", ")
-
+  private def responseMapper(response: HttpResponse): Result = {
     Status(response.status)
       .apply(response.body)
-      .withHeaders(headers.toList: _*)
       .as(ContentTypes.JSON)
   }
 
