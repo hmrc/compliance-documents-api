@@ -24,7 +24,7 @@ trait ComplianceDocumentsConnectorParser {
   val className: String
 
   def httpReads(correlationId: String): HttpReads[HttpResponse] = (_, url, response) => {
-    def logMessage(message: String): String = message + ", class: " + className
+    def logMessage(message: String): String = message + ", class: " + className + ", correlation id: " + correlationId
 
     response.status match {
       case NOT_FOUND => Logger.warn(

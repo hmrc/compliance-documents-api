@@ -51,12 +51,12 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
   implicit lazy val materializer: Materializer = app.materializer
 
   val correlationId: String = UUID.randomUUID().toString
-  val documentId: Long = 5123095L
+  val documentId: String = "532493"
   "The Vat Repayment Api Controller" when {
     "calling the getResponse route" should {
       "return Accepted if given a Json body" in {
 
-        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId))(any(), any()))
+        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
           .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.obj("a" -> "b")),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
@@ -83,7 +83,10 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           .withHeaders("CorrelationId" -> "@£$*&")
           .withJsonBody(Json.obj("a" -> "b"))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
-          contentAsString(result) shouldBe "Invalid correlation ID!"
+          contentAsJson(result) shouldBe Json.obj(
+            "code" -> "INVALID_CORRELATION_ID",
+            "message" ->  "The correlation id provided is invalid"
+          )
         }
       }
       "return BadRequest if not given a correlationId" in {
@@ -91,12 +94,15 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withJsonBody(Json.obj("a" -> "b"))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
-          contentAsString(result) shouldBe "Missing correlation ID!"
+          contentAsJson(result) shouldBe Json.obj(
+            "code" -> "MISSING_CORRELATION_ID",
+            "message" ->  "The correlation id is missing"
+          )
         }
       }
 
       "return InternalServerError if the connector is unsuccessful in communicating with IF" in {
-        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId))(any(), any()))
+        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
           .thenReturn(Future.successful(Left(())))
 
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
