@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-package models.responses
+package scala.models
 
-object DocumentIdMessages {
+import models.{ClassIndex, LoggerHelper}
+import org.scalatest.{Matchers, WordSpec}
+import org.scalatestplus.mockito.MockitoSugar
+import play.api.libs.json
+import play.api.libs.json.{JsError, JsPath, Json}
 
+class ClassIndexSpec extends WordSpec with Matchers with MockitoSugar {
+  "The classes reads method" should {
+    "return a JsError if given Json not containing nReg, ef or pReg" in {
+      Json.fromJson[ClassIndex](Json.obj("a" -> "b")) shouldBe JsError(JsPath.apply(),"unable to validate")
+    }
+  }
 }

@@ -19,8 +19,8 @@ package scala.exampleData
 import models.{ClassIndex, Document, DocumentMetadata, EF, NReg, PReg}
 
 object VatDocumentExample {
-  val dTRN: Long = 9443402451823L
-  val locCode: Short = 731
+  val dTRN: String = "9443402451823"
+  val locCode: String = "731"
   val docPages: Int = 51255414
   val efInvalid: String =
     s"""
@@ -118,7 +118,7 @@ object VatDocumentExample {
       "YIfD"
     ))
 
-  def minWithEmptySpace(classIndex: String) = {
+  def minWithEmptySpace(classIndex: String, isValidAllocateToUser: Boolean = true) = {
     s"""
        |{
        |  "documentBinary": "0123456789ABCDEF",
@@ -130,11 +130,23 @@ object VatDocumentExample {
        |    "docDate": "2000-02-29",
        |    "docBinaryHash": "400e406e13d5835aedfa61bff05299a9",
        |    "docBinaryRef": "qVX29XN0iireH",
-       |    "docBinaryType": "doc",
+       |    ${
+      if (isValidAllocateToUser) {
+        """"docBinaryType": "doc","""
+      } else {
+        """"docBinaryType": "dododo","""
+      }
+    }
        |    "creatingUser": "YIfD",
        |    "docDescription": "fS6k2abFoTNuirZSLQw7",
        |    "docPages": 51255414,
-       |    "allocateToUser": "*AUTO*"
+       |    ${
+      if (isValidAllocateToUser) {
+        """"allocateToUser": "*AUTO*""""
+      } else {
+        """"allocateToUser": "INVALIDINVALIDINVALID""""
+      }
+    }
        |  }
        |}
        |
@@ -179,11 +191,9 @@ object VatDocumentExample {
     case "pRegInvalid" => minWithEmptySpace(pRegInvalid)
     case "nRegInvalid" => minWithEmptySpace(nRegInvalid)
     case "justInvalid" => invalidWithEmptySpace(efInvalid)
+    case "invalidNoMissing" => minWithEmptySpace(ef, isValidAllocateToUser = false)
     case _ => ""
   }
-
-
-
 
   val schema: String =
     """
@@ -458,6 +468,117 @@ object VatDocumentExample {
       |            }
       |          }
       |        }
+      |      }
+      |    }
+      |  }
+      |}
+      |""".stripMargin
+  val invalidSchema: String =
+    """
+      |{
+      |    "$schema": "http://json-schema.org/draft-07/schema",
+      |    "$id": "http://example.com/example.json",
+      |    "type": "object",
+      |    "title": "The Root Schema",
+      |    "description": "The root schema comprises the entire JSON document.",
+      |    "default": {},
+      |    "additionalProperties": true,
+      |    "required": [
+      |        "documentBinary",
+      |        "documentMetadata"
+      |    ],
+      |    "properties": {
+      |        "documentBinary": {
+      |            "$id": "#/properties/documentBinary",
+      |            "type": "string",
+      |            "title": "The Documentbinary Schema",
+      |            "description": "An explanation about the purpose of this instance.",
+      |            "default": "",
+      |            "examples": [
+      |                "0123456789ABCDEF"
+      |            ]
+      |        },
+      |        "documentMetadata": {
+      |            "$id": "#/properties/documentMetadata",
+      |            "type": "object",
+      |            "title": "The Documentmetadata Schema",
+      |            "description": "An explanation about the purpose of this instance.",
+      |            "default": {},
+      |            "examples": [
+      |                {
+      |                    "classIndex": {
+      |                        "ef": {
+      |                            "dTRN": "9443402451823"
+      |                        }
+      |                    }
+      |                }
+      |            ],
+      |            "additionalProperties": true,
+      |            "required": [
+      |                "classIndex"
+      |            ],
+      |            "properties": {
+      |                "classIndex": {
+      |                    "$id": "#/properties/documentMetadata/properties/classIndex",
+      |                    "type": "object",
+      |                    "title": "The Classindex Schema",
+      |                    "description": "An explanation about the purpose of this instance.",
+      |                    "default": {},
+      |                    "examples": [
+      |                        {
+      |                            "ef": {
+      |                                "dTRN": "9443402451823"
+      |                            }
+      |                        }
+      |                    ],
+      |                    "additionalProperties": true,
+      |                    "required": [
+      |                        "ef"
+      |                    ],
+      |                    "properties": {
+      |                        "ef": {
+      |                            "$id": "#/properties/documentMetadata/properties/classIndex/properties/ef",
+      |                            "type": "object",
+      |                            "title": "The Ef Schema",
+      |                            "description": "An explanation about the purpose of this instance.",
+      |                            "default": {},
+      |                            "examples": [
+      |                                {
+      |                                    "dTRN": "9443402451823"
+      |                                }
+      |                            ],
+      |                            "additionalProperties": true,
+      |                            "required": [
+      |                                "dTRN"
+      |                            ],
+      |                            "properties": {
+      |                                "dTRN": {
+      |                                    "$id": "#/properties/documentMetadata/properties/classIndex/properties/ef/properties/dTRN",
+      |                                    "type": "string",
+      |                                    "title": "The Dtrn Schema",
+      |                                    "description": "An explanation about the purpose of this instance.",
+      |                                    "default": "",
+      |                                    "examples": [
+      |                                        "9443402451823"
+      |                                    ]
+      |                                }
+      |                            }
+      |                        }
+      |                    }
+      |                }
+      |            }
+      |        }
+      |    }
+      |}
+      |""".stripMargin
+  val fitsInvalidSchema: String =
+    """
+      |{
+      |  "documentBinary": "0123456789ABCDEF",
+      |  "documentMetadata": {
+      |    "classIndex": {
+      |      "ef": {
+      |        "dTRN": "9443402451823"
       |      }
       |    }
       |  }

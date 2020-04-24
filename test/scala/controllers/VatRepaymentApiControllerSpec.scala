@@ -106,7 +106,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
             """
-              |{"failures":[{"code":"INVALID_PAYLOAD","reason":"Submission has not passed validation. Invalid payload."}]}
+              |{"code":"JSON_VALIDATION_ERROR","message":"The provided JSON was unable to be validated.","Errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
               |""".stripMargin
           )
         }
@@ -119,7 +119,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
             """
-              |{"failures":[{"code":"INVALID_CORRELATIONID","reason":"Submission has not passed validation. Invalid Header CorrelationId."}]}
+              |{"message":"Unable to process request.","Errors":[{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."}]}
               |""".stripMargin
           )
         }
@@ -130,7 +130,8 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
-            """{"failures":[{"code":"INVALID_CORRELATIONID","reason":"Submission has not passed validation. Invalid Header CorrelationId."}]}"""
+            """{"message":"Unable to process request.","Errors":[{"code":"INVALID_CORRELATIONID",
+              |"message":"Submission has not passed validation. Invalid Header CorrelationId."}]}""".stripMargin
           )
         }
       }

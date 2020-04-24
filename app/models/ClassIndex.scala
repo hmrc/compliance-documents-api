@@ -17,13 +17,16 @@
 package models
 
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json, Reads}
+import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
+
 
 trait ClassIndex
 
 case class EF(
-               dTRN: Long,
-               locationCode: Option[Short],
+               dTRN: String,
+               locationCode: Option[String],
                category: Option[String],
                enquiryReference: Option[String],
                caseReference: Option[String]
@@ -43,26 +46,34 @@ case class PReg(
                  postCode: Option[String],
                  outcomeStatus: Option[String],
                  riskScore: Option[Short],
-                 locationCode: Option[Short]
+                 locationCode: Option[String]
                ) extends ClassIndex
 
 object ClassIndex {
-  implicit def efReads: Reads[EF] = Json.reads[EF]
+  implicit def efReads: Reads[EF] =
+    ((JsPath \\ "dTRN").read[String] and
+      (JsPath \\ "locationCode").readNullable[String] and
+      (JsPath \\ "category").readNullable[String] and
+      (JsPath \\ "enquiryReference").readNullable[String] and
+      (JsPath \\ "caseReference").readNullable[String]) (EF.apply _)
 
   implicit def nRegReads: Reads[NReg] = Json.reads[NReg]
 
   implicit def pRegReads: Reads[PReg] = Json.reads[PReg]
 
   implicit def classesReads: Reads[ClassIndex] = (json: JsValue) => {
-    Logger.debug("\n\n\n Json is " + json + "\n\n\n")
 
-    json.validate[EF] orElse (
-      if (json.toString().contains("nReg")) {
-        json.validate[NReg]
-      }
-      else {
-        json.validate[PReg]
-      }
-      )
+    if (json.toString().contains(""""ef":""")) {
+      json.validate[EF]
+    } else if (json.toString().contains(""""pReg":""")) {
+      json.validate[PReg]
+    } else if (json.toString().contains(""""nReg":""")) {
+      json.validate[NReg]
+    }
+    else {
+      JsError(JsPath.apply(),"unable to validate")
+    }
   }
+
+
 }

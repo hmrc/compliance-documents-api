@@ -43,6 +43,8 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
 
   def validationService = new ValidationService(bodyParser, mockResource)
 
+  def spyValidationService = Mockito.spy(validationService)
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     Mockito.reset(mockResource)
@@ -54,7 +56,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn("{}")
       validationService.validate[Document](Json.parse(getExample("justInvalid")), "1234", validCorrelationId = true).left.get mustBe Json.parse(
         """
-          |{"failures":[{"code":"INVALID_PAYLOAD","reason":"Submission has not passed validation. Invalid payload."}]}
+{"code":"JSON_VALIDATION_ERROR","message":"The provided JSON was unable to be validated as the ef model.","Errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
           |""".stripMargin
       )
     }
@@ -63,7 +65,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
       validationService.validate[Document](Json.parse(getExample("ef")), "1234", validCorrelationId = false).left.get mustBe Json.parse(
         """
-          |{"failures":[{"code":"INVALID_CORRELATIONID","reason":"Submission has not passed validation. Invalid Header CorrelationId."}]}
+ {"message":"Unable to process request.","Errors":[{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."}]}
           |""".stripMargin
       )
     }
@@ -72,7 +74,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
       validationService.validate[Document](Json.parse(getExample("pReg")), "1234a").left.get mustBe Json.parse(
         """
-          |{"failures":[{"code":"INVALID_DOCUMENTID","reason":"Submission has not passed validation. Invalid parameter documentId."}]}
+          |{"message":"Unable to process request.","Errors":[{"code":"INVALID_DOCUMENTID","message":"Submission has not passed validation. Invalid parameter documentId."}]}
           |""".stripMargin
       )
     }
@@ -80,7 +82,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
       validationService.validate[Document](Json.parse(getExample("efInvalid")), "1234a", validCorrelationId = false).left.get mustBe Json.parse(
         """
-          |{"failures":[{"code":"INVALID_PAYLOAD","reason":"Submission has not passed validation. Invalid payload."},{"code":"INVALID_CORRELATIONID","reason":"Submission has not passed validation. Invalid Header CorrelationId."},{"code":"INVALID_DOCUMENTID","reason":"Submission has not passed validation. Invalid parameter documentId."}]}
+          |{"message":"Unable to process request.","Errors":[{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload."},{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."},{"code":"INVALID_DOCUMENTID","message":"Submission has not passed validation. Invalid parameter documentId."}]}
           |""".stripMargin
       )
     }
@@ -96,6 +98,22 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
       assert(validationService.validate[Document](Json.parse(getExample("pReg")), "1234").isRight)
     }
+    "return bad request if given invalid input with one field not matching Regex" in {
+      Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
+      val resultOfBadOne = validationService.validate[Document](Json.parse(getExample("invalidNoMissing")), "1234")
+      assert(resultOfBadOne.isLeft)
+    }
+    "return bad request if given valid input that doesn't match the model" in {
+      Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(invalidSchema)
+      assert(validationService.validate[Document](Json.parse(fitsInvalidSchema), "1234").isLeft)
+    }
   }
+  "The validate doc type method" should {
+    "return bad request if given invalid Json" in {
+      Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
 
+      val docJson = Json.obj("documentMetadata" -> Json.obj("classIndex" -> Json.obj("ef" -> Json.obj("dTRN" -> "9443402451823"))))
+      assert(validationService.validateDocType(docJson).isLeft)
+    }
+  }
 }

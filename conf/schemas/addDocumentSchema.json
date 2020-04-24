@@ -64,7 +64,7 @@
                 "pReg"
               ],
               "properties": {
-                "nReg": {
+                "pReg": {
                   "$ref": "#/definitions/classIndexPReg"
                 }
               }
