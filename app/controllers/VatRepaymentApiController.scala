@@ -25,8 +25,10 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import java.util.UUID
 
 import controllers.actions.ValidateCorrelationIdHeaderAction
+import models.Document
 import play.api.Logger
 import play.api.http.ContentTypes
+import services.ValidationService
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.api.controllers.ErrorInternalServerError
 
@@ -34,6 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class VatRepaymentApiController @Inject()(
+                                           validator: ValidationService,
                                            complianceDocumentsConnector: ComplianceDocumentsConnector,
                                            appConfig: AppConfig,
                                            getCorrelationId: ValidateCorrelationIdHeaderAction,
@@ -43,15 +46,16 @@ class VatRepaymentApiController @Inject()(
   def postRepaymentData(documentId: String): Action[AnyContent] = getCorrelationId.async { implicit request =>
     val input = request.body.asJson.getOrElse(JsNull)
 
-    Logger.debug(s"Input for controller postRepaymentData: $input")
 
-    input match {
-      case JsNull => Future.successful(BadRequest)
-      case _ =>
+    validator.validate[Document](input, documentId, request.valid) match {
+      case Right(_) =>
         Logger.info(s"Request received - passing on to IF. Correlation ID: ${request.correlationId}")
         complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId.toLong).map {
           _.fold[Result](_ => InternalServerError(Json.toJson(ErrorInternalServerError)), responseMapper)
         }
+      case Left(errors) =>
+        Logger.warn((s"request body didn't match json with errors: ${Json.prettyPrint(errors)}. Correlation ID: ${request.correlationId}"))
+        Future.successful(BadRequest(errors))
     }
   }
 

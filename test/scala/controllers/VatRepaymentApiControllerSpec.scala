@@ -34,7 +34,7 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HttpResponse
-
+import scala.exampleData.VatDocumentExample._
 import scala.concurrent.Future
 
 class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoSugar with GuiceOneAppPerSuite {
@@ -54,18 +54,48 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
   val documentId: String = "532493"
   "The Vat Repayment Api Controller" when {
     "calling the getResponse route" should {
-      "return Accepted if given a Json body" in {
+      "return Accepted if given a valid Json body - EF" in {
 
         Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
-          .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.obj("a" -> "b")),
+          .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("ef"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
 
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withHeaders("CorrelationId" -> correlationId)
-          .withJsonBody(Json.obj("a" -> "b"))).map { result =>
+          .withJsonBody(Json.parse(getExample("ef")))).map { result =>
           status(result) shouldBe Status.ACCEPTED
-          contentAsJson(result) shouldBe Json.obj("a" -> "b")
+          contentAsJson(result) shouldBe Json.parse(getExample("ef"))
+        }
+
+      }
+      "return Accepted if given a valid Json body - nReg" in {
+
+        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
+          .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("nReg"))),
+            Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
+          )))
+
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
+          .withHeaders("CorrelationId" -> correlationId)
+          .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
+          status(result) shouldBe Status.ACCEPTED
+          contentAsJson(result) shouldBe Json.parse(getExample("nReg"))
+        }
+
+      }
+      "return Accepted if given a valid Json body - pReg" in {
+
+        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
+          .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("pReg"))),
+            Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
+          )))
+
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
+          .withHeaders("CorrelationId" -> correlationId)
+          .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
+          status(result) shouldBe Status.ACCEPTED
+          contentAsJson(result) shouldBe Json.parse(getExample("pReg"))
         }
 
       }
@@ -74,29 +104,33 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           .withHeaders("CorrelationId" -> correlationId)
           .withBody("This is not Json!")).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
-          contentAsString(result) shouldBe ""
+          contentAsJson(result) shouldBe Json.parse(
+            """
+              |{"failures":[{"code":"INVALID_PAYLOAD","reason":"Submission has not passed validation. Invalid payload."}]}
+              |""".stripMargin
+          )
         }
       }
       "return BadRequest if given an invalid correlationId" in {
 
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withHeaders("CorrelationId" -> "@£$*&")
-          .withJsonBody(Json.obj("a" -> "b"))).map { result =>
+          .withJsonBody(Json.parse(getExample("nReg")))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
-          contentAsJson(result) shouldBe Json.obj(
-            "code" -> "INVALID_CORRELATION_ID",
-            "message" ->  "The correlation id provided is invalid"
+          contentAsJson(result) shouldBe Json.parse(
+            """
+              |{"failures":[{"code":"INVALID_CORRELATIONID","reason":"Submission has not passed validation. Invalid Header CorrelationId."}]}
+              |""".stripMargin
           )
         }
       }
       "return BadRequest if not given a correlationId" in {
 
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withJsonBody(Json.obj("a" -> "b"))).map { result =>
+          .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
-          contentAsJson(result) shouldBe Json.obj(
-            "code" -> "MISSING_CORRELATION_ID",
-            "message" ->  "The correlation id is missing"
+          contentAsJson(result) shouldBe Json.parse(
+            """{"failures":[{"code":"INVALID_CORRELATIONID","reason":"Submission has not passed validation. Invalid Header CorrelationId."}]}"""
           )
         }
       }
@@ -107,11 +141,11 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
 
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withHeaders("CorrelationId" -> correlationId)
-          .withJsonBody(Json.obj("a" -> "b"))).map { result =>
+          .withJsonBody(Json.parse(getExample("ef")))).map { result =>
           status(result) shouldBe Status.INTERNAL_SERVER_ERROR
           contentAsJson(result) shouldBe Json.obj(
             "code" -> "INTERNAL_SERVER_ERROR",
-            "message" ->  "Internal server error"
+            "message" -> "Internal server error"
           )
         }
 
