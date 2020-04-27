@@ -20,11 +20,10 @@ import com.google.inject.Inject
 import play.api.Logger
 import play.api.mvc.Results.BadRequest
 import play.api.mvc._
-import models.responses.CorrelationIdMessages
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
-case class RequestWithCorrelationId[A](request: Request[A], correlationId: String) extends WrappedRequest(request)
+case class RequestWithCorrelationId[A](request: Request[A], correlationId: String, valid: Boolean = true) extends WrappedRequest(request)
 
 class ValidateCorrelationIdHeaderAction @Inject()(val parser: BodyParsers.Default)
                                                  (implicit val executionContext: ExecutionContext)
@@ -43,12 +42,12 @@ class ValidateCorrelationIdHeaderAction @Inject()(val parser: BodyParsers.Defaul
         Logger.warn(
           ("ValidateCorrelationIdHeaderAction", "invokeBlock", s"invalid CorrelationId found in request $x").toString
         )
-        Future.successful(BadRequest(CorrelationIdMessages.invalid))
+        block(RequestWithCorrelationId(request, x, valid = false))
     }.getOrElse {
       Logger.warn(
         ("ValidateCorrelationIdHeaderAction", "invokeBlock", "failed to retrieve CorrelationId in request").toString
       )
-      Future.successful(BadRequest(CorrelationIdMessages.missing))
+      block(RequestWithCorrelationId(request, "", valid = false))
     }
   }
 }
