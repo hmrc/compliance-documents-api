@@ -1,0 +1,24 @@
+{
+  "documentBinary": "0123456789ABCDEF",
+  "documentMetadata": {
+    "classIndex": {
+      "pReg": {
+	    "caseReference": "1234",
+        "name": "John Doe",
+        "postCode": "SW1A0AA",
+        "outcomeStatus": "Un -successful1",
+        "riskScore": "345",
+        "locationCode": "059"
+      }
+    },
+    "docType": "VoHl",
+    "docDate": "2000-02-29",
+    "docBinaryHash": "400e406e13d5835aedfa61bff05299a9",
+    "docBinaryRef": "qVX29XN0iireH",
+    "docBinaryType": "doc",
+    "creatingUser": "YIfD1",
+    "docDescription": "fS6k2abFoTNuirZSLQw7",
+    "docPages": 51255414,
+    "allocateToUser": "*AUTO*"
+  }
+}

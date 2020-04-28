@@ -57,14 +57,7 @@ uses:
                 description: example PReg document body
                 value: !include examples/CreateVATDocumentPRegExample.json
         responses:
-          200:
-            body:
-              application/json:
-                examples:
-                  example-1:
-                    description: Accepted.
-                    value:
-
+          202:
           400:
             body:
               application/json:
@@ -83,13 +76,17 @@ uses:
                     value:
                       code: MISSING_FIELD
                   example-4:
-                    description: The correlation id provided is invalid.
+                    description: The correlation ID provided is invalid.
                     value:
                       code: INVALID_CORRELATIONID
                   example-5:
                     description: The document ID provided is invalid.
                     value:
                       code: INVALID_DOCUMENTID
+                  example-6:
+                    description: The document payload provided is invalid.
+                    value:
+                      code: INVALID_PAYLOAD
           401:
             body:
               application/json:
