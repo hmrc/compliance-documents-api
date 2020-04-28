@@ -81,7 +81,6 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
       }
     }
 
-    Logger.debug("Validate doc type" + docJson.toString)
     (docJson \ "documentMetadata" \ "classIndex").validate[ClassIndex] match {
       case JsSuccess(EF(_, _, _, _, _), _) => getResult(addDocumentSchema, "ef")
       case JsSuccess(NReg(_, _, _, _, _), _) => getResult(addDocumentSchema, "nReg")
@@ -154,7 +153,6 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
       val result = validateInternallyAgainstSchema(schemaString, input)
       //Uncomment if want to log request json
       //      logger.debug(Json.prettyPrint(input))
-      Logger.debug(result.toString)
       val errors = getAllNonJsonErrors(result, validCorrelationId, docId)
       errors.foreach(g => logger.error(g.toString()))
       Left(

@@ -25,6 +25,7 @@ import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import play.api.http.Status.{ACCEPTED, BAD_REQUEST, NOT_FOUND}
+import utils.LoggerHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,6 +37,7 @@ class ComplianceDocumentsConnector @Inject()(
 
 
   override val className: String = this.getClass.getSimpleName
+  override val logger: Logger = Logger(this.getClass)
 
   lazy val bearerToken: String = config.get[String]("integration-framework.auth-token")
   lazy val iFEnvironment: String = config.get[String]("integration-framework.environment")
@@ -56,8 +58,9 @@ class ComplianceDocumentsConnector @Inject()(
     ).map(Right.apply)
       .recover {
         case e: Exception =>
-          Logger.error(s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} (IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)"
-            , e)
+          logger.error(LoggerHelper.logProcess("ComplianceDocumentsConnector", "vatRepayment",
+            s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} " +
+              s"(IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)" + e, Some(correlationId), Some(request)))
           Left(())
       }
   }

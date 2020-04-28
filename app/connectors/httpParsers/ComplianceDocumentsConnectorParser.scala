@@ -19,24 +19,29 @@ package connectors.httpParsers
 import play.api.Logger
 import play.api.http.Status.{BAD_REQUEST, NOT_FOUND, ACCEPTED}
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+import utils.LoggerHelper._
 
 trait ComplianceDocumentsConnectorParser {
   val className: String
+  val logger: Logger
 
   def httpReads(correlationId: String): HttpReads[HttpResponse] = (_, url, response) => {
-    def logMessage(message: String): String = message + ", class: " + className + ", correlation id: " + correlationId
 
     response.status match {
-      case NOT_FOUND => Logger.warn(
-        logMessage(s"received a not found status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_NOT_FOUND_RESPONSE )")
+      case NOT_FOUND => logger.warn(
+        logProcess(className, "connector parser",
+          s"received a not found status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_NOT_FOUND_RESPONSE )")
       )
-      case BAD_REQUEST => Logger.warn(
-        logMessage(s"received a bad request status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_BAD_REQUEST_RESPONSE )")
+      case BAD_REQUEST => logger.warn(
+        logProcess(className, "connector parser",
+          s"received a bad request status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_BAD_REQUEST_RESPONSE )")
       )
-      case status if status != ACCEPTED => Logger.warn(
-        logMessage(s"received status $status when calling $url")
+      case status if status != ACCEPTED => logger.warn(
+        logProcess(className, "connector parser",
+          s"received status $status when calling $url")
       )
-      case _ => Logger.info(logMessage(s"received an accepted when calling $url"))
+      case _ => logger.info(logProcess(className, "connector parser",
+        s"received an accepted when calling $url"))
     }
 
     response

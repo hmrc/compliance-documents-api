@@ -16,7 +16,7 @@
 
 package scala.models
 
-import models.{ClassIndex, LoggerHelper}
+import models.ClassIndex
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json

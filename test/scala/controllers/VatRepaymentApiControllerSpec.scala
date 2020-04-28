@@ -65,7 +65,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           .withHeaders("CorrelationId" -> correlationId)
           .withJsonBody(Json.parse(getExample("ef")))).map { result =>
           status(result) shouldBe Status.ACCEPTED
-          contentAsJson(result) shouldBe Json.parse(getExample("ef"))
+          contentAsString(result) shouldBe ""
         }
 
       }
@@ -80,7 +80,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           .withHeaders("CorrelationId" -> correlationId)
           .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
           status(result) shouldBe Status.ACCEPTED
-          contentAsJson(result) shouldBe Json.parse(getExample("nReg"))
+          contentAsString(result) shouldBe ""
         }
 
       }
@@ -95,7 +95,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           .withHeaders("CorrelationId" -> correlationId)
           .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
           status(result) shouldBe Status.ACCEPTED
-          contentAsJson(result) shouldBe Json.parse(getExample("pReg"))
+          contentAsString(result) shouldBe ""
         }
 
       }
