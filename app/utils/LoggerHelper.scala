@@ -19,15 +19,26 @@ package utils
 import play.api.libs.json.{JsNull, JsObject, JsSuccess, JsValue}
 
 object LoggerHelper {
-  def logProcess(className: String, methodName: String, message: String, correlationId: Option[String] = None, docSize: Option[JsValue] = None): String = {
+  def logProcess(className: String,
+                 methodName: String,
+                 message: String,
+                 correlationId: Option[String] = None,
+                 docSize: Option[JsValue] = None,
+                 requestId: Option[Long] = None): String = {
     s"In class $className, method $methodName: \n$message${
       addLogOrNothing("correlationId", correlationId)
     }${
       addLogOrNothing("document size", getSize(docSize))
+    }${
+      addLongOrNothing("request ID", requestId)
     }"
   }
 
   def addLogOrNothing(propName: String, documentProperty: Option[String]): String = {
+    if (documentProperty.isDefined) s", $propName: ${documentProperty.get}" else ""
+  }
+
+  def addLongOrNothing(propName: String, documentProperty: Option[Long]): String = {
     if (documentProperty.isDefined) s", $propName: ${documentProperty.get}" else ""
   }
 

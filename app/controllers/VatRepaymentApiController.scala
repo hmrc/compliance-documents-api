@@ -46,18 +46,25 @@ class VatRepaymentApiController @Inject()(
 
   def postRepaymentData(documentId: String): Action[AnyContent] = getCorrelationId.async { implicit request =>
     val input = request.body.asJson.getOrElse(JsNull)
-
+    Logger.info(logProcess("VatRepaymentApiController",
+      "postRepaymentData",
+      s"Post request received",
+      Some(request.correlationId),
+      Some(input),
+      Some(request.id)))
 
     validator.validate[Document](input, documentId, request.valid) match {
       case Right(_) =>
         logger.info(logProcess("VatRepaymentApiController", "postRepaymentData: Right",
-          s"Request received - passing on to IF", Some(request.correlationId), Some(input)))
+          s"Request received - passing on to IF", Some(request.correlationId), Some(input), Some(request.id)))
         complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId.toLong).map {
           _.fold[Result](_ => InternalServerError(Json.toJson(ErrorInternalServerError)), responseMapper)
         }
       case Left(errors) =>
         logger.warn(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",
-          s"request body didn't match json with errors: ${Json.prettyPrint(errors)}", Some(request.correlationId), Some(input)))
+          s"request body didn't match json with errors: ${Json.prettyPrint(errors)}",
+          Some(request.correlationId), Some(input),
+          Some(request.id)))
         Future.successful(BadRequest(errors))
     }
   }
