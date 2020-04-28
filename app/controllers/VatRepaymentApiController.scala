@@ -22,8 +22,7 @@ import javax.inject._
 import play.api.libs.json.{JsNull, JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import java.util.UUID
-
+import utils.LoggerHelper._
 import controllers.actions.ValidateCorrelationIdHeaderAction
 import models.Document
 import play.api.Logger
@@ -31,6 +30,7 @@ import play.api.http.ContentTypes
 import services.ValidationService
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.api.controllers.ErrorInternalServerError
+import utils.LoggerHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -42,26 +42,36 @@ class VatRepaymentApiController @Inject()(
                                            getCorrelationId: ValidateCorrelationIdHeaderAction,
                                            cc: ControllerComponents
                                          )(implicit ec: ExecutionContext) extends BackendController(cc) {
+  private val logger: Logger = Logger(this.getClass)
 
   def postRepaymentData(documentId: String): Action[AnyContent] = getCorrelationId.async { implicit request =>
     val input = request.body.asJson.getOrElse(JsNull)
-
+    Logger.info(logProcess("VatRepaymentApiController",
+      "postRepaymentData",
+      s"Post request received",
+      Some(request.correlationId),
+      Some(input),
+      Some(request.id)))
 
     validator.validate[Document](input, documentId, request.valid) match {
       case Right(_) =>
-        Logger.info(s"Request received - passing on to IF. Correlation ID: ${request.correlationId}")
+        logger.info(logProcess("VatRepaymentApiController", "postRepaymentData: Right",
+          s"Request received - passing on to IF", Some(request.correlationId), Some(input), Some(request.id)))
         complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId.toLong).map {
           _.fold[Result](_ => InternalServerError(Json.toJson(ErrorInternalServerError)), responseMapper)
         }
       case Left(errors) =>
-        Logger.warn((s"request body didn't match json with errors: ${Json.prettyPrint(errors)}. Correlation ID: ${request.correlationId}"))
+        logger.warn(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",
+          s"request body didn't match json with errors: ${Json.prettyPrint(errors)}",
+          Some(request.correlationId), Some(input),
+          Some(request.id)))
         Future.successful(BadRequest(errors))
     }
   }
 
   private def responseMapper(response: HttpResponse): Result = {
     Status(response.status)
-      .apply(response.body)
+
       .as(ContentTypes.JSON)
   }
 

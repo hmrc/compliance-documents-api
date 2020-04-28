@@ -32,7 +32,7 @@ class VatRepaymentISpec extends PlaySpec with WireMockSpec with Fixtures {
         .post(createRepaymentDocumentJson))
 
       response.status mustBe BAD_REQUEST
-      response.body mustBe """{"code":"BAD_REQUEST","message":"Bad request test!"}"""
+      response.body mustBe ""
     }
 
     s"return an $INTERNAL_SERVER_ERROR if an exception occurs received from IF" in {

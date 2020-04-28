@@ -20,6 +20,8 @@ import com.google.inject.Inject
 import play.api.Logger
 import play.api.mvc.Results.BadRequest
 import play.api.mvc._
+import utils.LoggerHelper
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
@@ -28,24 +30,29 @@ case class RequestWithCorrelationId[A](request: Request[A], correlationId: Strin
 class ValidateCorrelationIdHeaderAction @Inject()(val parser: BodyParsers.Default)
                                                  (implicit val executionContext: ExecutionContext)
   extends ActionBuilder[RequestWithCorrelationId, AnyContent] {
+  private val logger: Logger = Logger(this.getClass)
 
   val correlationIdRegex: Regex = """(^[0-9a-fA-F]{8}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{12}$)""".r
 
   override def invokeBlock[A](request: Request[A], block: RequestWithCorrelationId[A] => Future[Result]): Future[Result] = {
     request.headers.get("CorrelationId").map {
       case correlationIdRegex(correlationId) =>
-        Logger.info(
-          ("ValidateCorrelationIdHeaderAction", "invokeBlock", "successfully found CorrelationId in request", correlationId).toString
+        logger.info(LoggerHelper.logProcess(
+          "ValidateCorrelationIdHeaderAction",
+          "invokeBlock",
+          "successfully found CorrelationId in request",
+          Some(correlationId))
         )
         block(RequestWithCorrelationId(request, correlationId))
       case x =>
-        Logger.warn(
-          ("ValidateCorrelationIdHeaderAction", "invokeBlock", s"invalid CorrelationId found in request $x").toString
+        logger.warn(LoggerHelper.logProcess
+        ("ValidateCorrelationIdHeaderAction", "invokeBlock", s"invalid CorrelationId found in request",
+          Some(x))
         )
         block(RequestWithCorrelationId(request, x, valid = false))
     }.getOrElse {
-      Logger.warn(
-        ("ValidateCorrelationIdHeaderAction", "invokeBlock", "failed to retrieve CorrelationId in request").toString
+      logger.warn(LoggerHelper.logProcess
+      ("ValidateCorrelationIdHeaderAction", "invokeBlock", "failed to retrieve CorrelationId in request")
       )
       block(RequestWithCorrelationId(request, "", valid = false))
     }
