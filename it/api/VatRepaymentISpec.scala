@@ -6,13 +6,13 @@ import play.api.libs.json.Json
 import play.api.test.Helpers._
 
 class VatRepaymentISpec extends PlaySpec with WireMockSpec with Fixtures {
-  "POST /compliance-documents-api/vat-repayment-info/(id)" should {
+  "POST /vat-repayment-info/(id)" should {
     s"return an $ACCEPTED if $ACCEPTED received from IF" in {
       stubPostWithoutResponseBody("/organisations/document/4321", ACCEPTED, correlationId)
       stubPostWithoutRequestAndResponseBody("/write/audit", NO_CONTENT)
       stubPostWithoutRequestAndResponseBody("/write/audit/merged", NO_CONTENT)
 
-      val response = await(buildClient("/compliance-documents-api/vat-repayment-info/4321")
+      val response = await(buildClient("/vat-repayment-info/4321")
         .withHttpHeaders("CorrelationId" -> correlationId)
         .post(createRepaymentDocumentJson))
 
@@ -27,7 +27,7 @@ class VatRepaymentISpec extends PlaySpec with WireMockSpec with Fixtures {
       stubPostWithoutRequestAndResponseBody("/write/audit", NO_CONTENT)
       stubPostWithoutRequestAndResponseBody("/write/audit/merged", NO_CONTENT)
 
-      val response = await(buildClient("/compliance-documents-api/vat-repayment-info/4321")
+      val response = await(buildClient("/vat-repayment-info/4321")
         .withHttpHeaders("CorrelationId" -> correlationId)
         .post(createRepaymentDocumentJson))
 
@@ -40,7 +40,7 @@ class VatRepaymentISpec extends PlaySpec with WireMockSpec with Fixtures {
       stubPostWithoutRequestAndResponseBody("/write/audit", NO_CONTENT)
       stubPostWithoutRequestAndResponseBody("/write/audit/merged", NO_CONTENT)
 
-      val response = await(buildClient("/compliance-documents-api/vat-repayment-info/4321")
+      val response = await(buildClient("/vat-repayment-info/4321")
         .withHttpHeaders("CorrelationId" -> correlationId)
         .post(createRepaymentDocumentJson))
 
