@@ -1,0 +1,23 @@
+{
+  "documentBinary": "0123456789ABCDEF",
+  "documentMetadata": {
+    "classIndex": {
+      "ef": {
+        "dTRN": "9443402451823",
+        "locationCode": "731",
+        "category": "a-Category1",
+        "enquiryReference": "UYp3V0",
+        "caseReference": "ABC01234"
+      }
+    },
+    "docType": "VoHl",
+    "docDate": "2000-02-29",
+    "docBinaryHash": "400e406e13d5835aedfa61bff05299a9",
+    "docBinaryRef": "qVX29XN0iireH",
+    "docBinaryType": "doc",
+    "creatingUser": "YIfD",
+    "docDescription": "fS6k2abFoTNuirZSLQw7",
+    "docPages": 51255414,
+    "allocateToUser": "*AUTO*"
+  }
+}
