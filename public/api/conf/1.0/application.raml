@@ -29,10 +29,10 @@ uses:
     /{document-id}:
       uriParameters:
         document-id:
-          description: An unsigned long integer id, the document's ID number.
-          type: number
-          format: long
-          example: 18446744073709551615
+          description: A string representation of an integer in the range 0 to 18439999999999999999.
+          type: string
+          pattern: ^(([0-9]{1,19})|(1[0-7][0-9]{18})|(18[0-3][0-9]{17})|(184[0-3][0-9]{16}))$
+          example: 18439999999999999999
       post:
         displayName: post-document-api
 

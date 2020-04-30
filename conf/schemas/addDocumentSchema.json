@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "API#1562 -  add document",
+  "title": "IF API#1562 Store Document request schema v1.1.0",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -234,7 +234,7 @@
     "postCodeType": {
       "description": "Optional. Used for identifying the case the document is associated with",
       "type": "string",
-      "pattern": "^[A-Za-z0-9 ]{1,8}$"
+      "pattern": "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$"
     },
     "errorResponse": {
       "type": "object",
