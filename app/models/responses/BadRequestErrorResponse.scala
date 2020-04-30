@@ -18,9 +18,9 @@ package models.responses
 
 import play.api.libs.json.{Json, Writes}
 
-case class BadRequestErrorResponse(code: String, message: String, Errors: Seq[OtherError])
+case class BadRequestErrorResponse(code: String, message: String, errors: Seq[OtherError])
 
-case class BadRequestCorrDoc(message: String, Errors: Seq[OtherError])
+case class BadRequestCorrDoc(message: String, errors: Seq[OtherError])
 
 object BadRequestCorrDoc {
   implicit def badRequestCorrDocWrites: Writes[BadRequestCorrDoc] = Json.writes[BadRequestCorrDoc]

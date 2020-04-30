@@ -40,21 +40,19 @@ case class InvalidCorrelationId()
 
 object OtherError {
 
-  implicit def otherErrorWrites: Writes[OtherError] = (error: OtherError) => {
-    if (error.isInstanceOf[FieldError]) {
-      val fieldError = error.asInstanceOf[FieldError]
+  implicit def otherErrorWrites: Writes[OtherError] = {
+    case fieldError: FieldError =>
       Json.obj(
         "code" -> fieldError.code,
         "message" -> fieldError.reason,
         "path" -> fieldError.path
       )
 
-    } else {
+    case error =>
       Json.obj(
         "code" -> error.code,
         "message" -> error.reason
       )
-    }
   }
 
 }
