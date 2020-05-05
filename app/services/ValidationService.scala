@@ -59,7 +59,7 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     .newBuilder()
     .setReportProvider(new ListReportProvider(LogLevel.ERROR, LogLevel.FATAL))
     .freeze()
-  private val logger = Logger(this.getClass)
+  private val logger = Logger(this.getClass.getSimpleName)
 
 
   private def validateInternallyAgainstSchema(schemaString: String, input: JsValue) = {
@@ -74,7 +74,6 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
       val result = validateInternallyAgainstSchema(schema, docJson)
       if (result.isSuccess) Right(()) else {
         val errors = getJsonObjs(result, "/documentMetadata/classIndex")
-        errors.foreach(g => logger.error(g.toString()))
         Left(
           BadRequestErrorResponse(errors, docType)
         )
@@ -82,12 +81,9 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     }
 
     (docJson \ "documentMetadata" \ "classIndex").validate[ClassIndex] match {
-      case JsSuccess(EF(_, _, _, _, _), _) => getResult(addDocumentSchema, "ef")
-      case JsSuccess(NReg(_, _, _, _, _), _) => getResult(addDocumentSchema, "nReg")
-      case JsSuccess(PReg(_, _, _, _, _, _), _) => getResult(addDocumentSchema, "pReg")
-      //below case appears impossible?
-      //      case JsSuccess(_, _) => Left(mappingErrorResponse(JsError(__ \ "documentMetadata" \ "classIndex", "invalid doc type provided").errors,
-      //        getClassDoc(docJson.toString())))
+      case JsSuccess(_: EF, _) => getResult(addDocumentSchema, "ef")
+      case JsSuccess(_: NReg, _) => getResult(addDocumentSchema, "nReg")
+      case JsSuccess(_: PReg, _) => getResult(addDocumentSchema, "pReg")
       case JsError(errors) => Left(mappingErrorResponse(errors.map {
         case (_, errors) => (__ \ "documentMetadata" \ "classIndex", errors)
       }, getClassDoc(docJson.toString())))
@@ -154,7 +150,6 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
       //Uncomment if want to log request json
       //      logger.debug(Json.prettyPrint(input))
       val errors = getAllNonJsonErrors(result, validCorrelationId, docId)
-      errors.foreach(g => logger.error(g.toString()))
       Left(
         Json.toJson(BadRequestCorrDoc(errors))
       )
@@ -162,7 +157,9 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
   }
 
   def getClassDoc(toFindIn: String): Option[String] = {
-    List(""""ef":""", "nReg", "pReg").map(el => if (toFindIn.contains(el)) el else "").find(el => el.nonEmpty)
+    List(""""ef":""", "nReg", "pReg").collectFirst {
+      case el if toFindIn.contains(el) => el
+    }
 
   }
 

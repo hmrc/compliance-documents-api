@@ -43,7 +43,6 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
 
   def validationService = new ValidationService(bodyParser, mockResource)
 
-  def spyValidationService = Mockito.spy(validationService)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -56,7 +55,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn("{}")
       validationService.validate[Document](Json.parse(getExample("justInvalid")), "1234", validCorrelationId = true).left.get mustBe Json.parse(
         """
-{"code":"JSON_VALIDATION_ERROR","message":"The provided JSON was unable to be validated as the ef model.","Errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
+{"code":"JSON_VALIDATION_ERROR","message":"The provided JSON was unable to be validated as the ef model.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
           |""".stripMargin
       )
     }
@@ -65,7 +64,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
       validationService.validate[Document](Json.parse(getExample("ef")), "1234", validCorrelationId = false).left.get mustBe Json.parse(
         """
- {"message":"Unable to process request.","Errors":[{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."}]}
+ {"message":"Unable to process request.","errors":[{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."}]}
           |""".stripMargin
       )
     }
@@ -74,7 +73,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
       validationService.validate[Document](Json.parse(getExample("pReg")), "1234a").left.get mustBe Json.parse(
         """
-          |{"message":"Unable to process request.","Errors":[{"code":"INVALID_DOCUMENTID","message":"Submission has not passed validation. Invalid parameter documentId."}]}
+          |{"message":"Unable to process request.","errors":[{"code":"INVALID_DOCUMENTID","message":"Submission has not passed validation. Invalid parameter documentId."}]}
           |""".stripMargin
       )
     }
@@ -82,7 +81,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(Matchers.any())).thenReturn(schema)
       validationService.validate[Document](Json.parse(getExample("efInvalid")), "1234a", validCorrelationId = false).left.get mustBe Json.parse(
         """
-          |{"message":"Unable to process request.","Errors":[{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload."},{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."},{"code":"INVALID_DOCUMENTID","message":"Submission has not passed validation. Invalid parameter documentId."}]}
+          |{"message":"Unable to process request.","errors":[{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload."},{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."},{"code":"INVALID_DOCUMENTID","message":"Submission has not passed validation. Invalid parameter documentId."}]}
           |""".stripMargin
       )
     }

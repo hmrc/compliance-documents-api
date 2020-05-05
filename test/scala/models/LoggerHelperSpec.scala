@@ -24,10 +24,10 @@ class LoggerHelperSpec extends WordSpec with Matchers with MockitoSugar{
   "The Logger Helper" when {
     "logging a process" should {
       "return a correct format without correlation id" in {
-        LoggerHelper.logProcess("class", "method", "message") shouldBe("In class class, method method: \nmessage")
+        LoggerHelper.logProcess("class", "method", "message") shouldBe("[class][method]\nmessage")
       }
       "return a correct format with correlation id" in {
-        LoggerHelper.logProcess("class", "method", "message", Some("1234")) shouldBe("In class class, method method: \nmessage, correlationId: 1234")
+        LoggerHelper.logProcess("class", "method", "message", Some("1234")) shouldBe("[class][method]\nmessage, correlationId: 1234")
 
       }
     }

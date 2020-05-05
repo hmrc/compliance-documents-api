@@ -23,12 +23,12 @@ import play.api.libs.json.{JsNull, JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.LoggerHelper._
-import controllers.actions.ValidateCorrelationIdHeaderAction
+import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
 import models.Document
 import play.api.Logger
 import play.api.http.ContentTypes
 import services.ValidationService
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.api.controllers.ErrorInternalServerError
 import utils.LoggerHelper
 
@@ -40,11 +40,12 @@ class VatRepaymentApiController @Inject()(
                                            complianceDocumentsConnector: ComplianceDocumentsConnector,
                                            appConfig: AppConfig,
                                            getCorrelationId: ValidateCorrelationIdHeaderAction,
+                                           authenticateApplication: AuthenticateApplicationAction,
                                            cc: ControllerComponents
                                          )(implicit ec: ExecutionContext) extends BackendController(cc) {
   private val logger: Logger = Logger(this.getClass)
 
-  def postRepaymentData(documentId: String): Action[AnyContent] = getCorrelationId.async { implicit request =>
+  def postRepaymentData(documentId: String): Action[AnyContent] = (authenticateApplication andThen getCorrelationId).async { implicit request =>
     val input = request.body.asJson.getOrElse(JsNull)
     Logger.info(logProcess("VatRepaymentApiController",
       "postRepaymentData",

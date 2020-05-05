@@ -25,7 +25,7 @@ object LoggerHelper {
                  correlationId: Option[String] = None,
                  docSize: Option[JsValue] = None,
                  requestId: Option[Long] = None): String = {
-    s"In class $className, method $methodName: \n$message${
+    s"[$className][$methodName]\n$message${
       addLogOrNothing("correlationId", correlationId)
     }${
       addLogOrNothing("document size", getSize(docSize))

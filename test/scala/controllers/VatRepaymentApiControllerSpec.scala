@@ -21,9 +21,11 @@ import java.util.UUID
 import akka.stream.Materializer
 import config.AppConfig
 import connectors.ComplianceDocumentsConnector
+import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
 import controllers.routes
 import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito
+import org.mockito.invocation.InvocationOnMock
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -31,20 +33,30 @@ import play.api.Application
 import play.api.http.Status
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
+import play.api.mvc.Request
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HttpResponse
+
 import scala.exampleData.VatDocumentExample._
 import scala.concurrent.Future
 
 class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoSugar with GuiceOneAppPerSuite {
+
+  val mockAuthApp: AuthenticateApplicationAction = mock[AuthenticateApplicationAction]
+
+  Mockito.when(mockAuthApp.andThen[Request](any())).thenAnswer(
+    (invocation: InvocationOnMock) => invocation.getArguments()(0).asInstanceOf[ValidateCorrelationIdHeaderAction]
+  )
+
   private val connector: ComplianceDocumentsConnector = mock[ComplianceDocumentsConnector]
   override lazy val app: Application = {
     import play.api.inject._
 
     new GuiceApplicationBuilder()
       .overrides(
-        bind[ComplianceDocumentsConnector].toInstance(connector)
+        bind[ComplianceDocumentsConnector].toInstance(connector),
+        bind[AuthenticateApplicationAction].toInstance(mockAuthApp)
       ).build()
   }
 
@@ -106,7 +118,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
             """
-              |{"code":"JSON_VALIDATION_ERROR","message":"The provided JSON was unable to be validated.","Errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
+              |{"code":"JSON_VALIDATION_ERROR","message":"The provided JSON was unable to be validated.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
               |""".stripMargin
           )
         }
@@ -119,7 +131,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
             """
-              |{"message":"Unable to process request.","Errors":[{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."}]}
+              |{"message":"Unable to process request.","errors":[{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."}]}
               |""".stripMargin
           )
         }
@@ -130,7 +142,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
-            """{"message":"Unable to process request.","Errors":[{"code":"INVALID_CORRELATIONID",
+            """{"message":"Unable to process request.","errors":[{"code":"INVALID_CORRELATIONID",
               |"message":"Submission has not passed validation. Invalid Header CorrelationId."}]}""".stripMargin
           )
         }

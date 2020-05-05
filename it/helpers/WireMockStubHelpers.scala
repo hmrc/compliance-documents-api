@@ -32,6 +32,16 @@ trait WireMockStubHelpers {
           .withBody(response)
           .withHeader("Content-Type", "application/json; charset=utf-8")))
 
+  def stubPostWithResponseBodyNoHeaders(url: String, status: Int, response: String): StubMapping =
+    stubFor(post(urlMatching(url))
+      .willReturn(
+        aResponse()
+          .withStatus(status)
+          .withBody(response)
+          .withHeader("Content-Type", "application/json; charset=utf-8")
+      )
+    )
+
   def stubPostWithFault(url: String, correlationId: String): StubMapping =
     stubFor(post(urlMatching(url))
       .withHeader("CorrelationId", equalTo(correlationId))
