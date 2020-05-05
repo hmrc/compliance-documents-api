@@ -30,7 +30,7 @@ class DefinitionControllerISpec extends PlaySpec with GuiceOneServerPerSuite wit
            |    "name": "Compliance Documents",
            |    "description": "Api to manage vat repayment documents sent to EF",
            |    "context": "misc/compliance-documents",
-           |    "categories": ["OTHER"],
+           |    "categories": ["PRIVATE_GOVERNMENT"],
            |    "versions": [
            |      {
            |        "version": "1.0",

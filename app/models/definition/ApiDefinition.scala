@@ -31,7 +31,7 @@ case class ApiDefinition(whiteListedApplicationIds: Seq[String], endpointsEnable
     "name" -> "Compliance Documents",
     "description" -> "Api to manage vat repayment documents sent to EF",
     "context" -> "misc/compliance-documents",
-    "categories" -> Json.arr("OTHER"),
+    "categories" -> Json.arr("PRIVATE_GOVERNMENT"),
     "versions" -> Json.arr(
       Json.obj(
         "version" -> "1.0",
