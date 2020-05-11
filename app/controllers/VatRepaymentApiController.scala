@@ -16,21 +16,20 @@
 
 package controllers
 
-import config.AppConfig
 import connectors.ComplianceDocumentsConnector
-import javax.inject._
-import play.api.libs.json.{JsNull, JsObject, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import utils.LoggerHelper._
 import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
+import javax.inject._
 import models.Document
 import play.api.Logger
 import play.api.http.ContentTypes
+import play.api.libs.json.{JsNull, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ValidationService
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.api.controllers.ErrorInternalServerError
+import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.LoggerHelper
+import utils.LoggerHelper._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,7 +37,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class VatRepaymentApiController @Inject()(
                                            validator: ValidationService,
                                            complianceDocumentsConnector: ComplianceDocumentsConnector,
-                                           appConfig: AppConfig,
                                            getCorrelationId: ValidateCorrelationIdHeaderAction,
                                            authenticateApplication: AuthenticateApplicationAction,
                                            cc: ControllerComponents
@@ -47,25 +45,23 @@ class VatRepaymentApiController @Inject()(
 
   def postRepaymentData(documentId: String): Action[AnyContent] = (authenticateApplication andThen getCorrelationId).async { implicit request =>
     val input = request.body.asJson.getOrElse(JsNull)
-    Logger.info(logProcess("VatRepaymentApiController",
+    logger.info(logProcess("VatRepaymentApiController",
       "postRepaymentData",
       s"Post request received",
       Some(request.correlationId),
-      Some(input),
-      Some(request.id)))
+      Some(input)))
 
     validator.validate[Document](input, documentId, request.valid) match {
       case Right(_) =>
         logger.info(logProcess("VatRepaymentApiController", "postRepaymentData: Right",
-          s"Request received - passing on to IF", Some(request.correlationId), Some(input), Some(request.id)))
+          s"Request received - passing on to IF", Some(request.correlationId), Some(input)))
         complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId.toLong).map {
           _.fold[Result](_ => InternalServerError(Json.toJson(ErrorInternalServerError)), responseMapper)
         }
       case Left(errors) =>
         logger.warn(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",
           s"request body didn't match json with errors: ${Json.prettyPrint(errors)}",
-          Some(request.correlationId), Some(input),
-          Some(request.id)))
+          Some(request.correlationId), Some(input)))
         Future.successful(BadRequest(errors))
     }
   }

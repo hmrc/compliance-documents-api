@@ -18,7 +18,6 @@ package controllers.actions
 
 import com.google.inject.Inject
 import play.api.Logger
-import play.api.mvc.Results.BadRequest
 import play.api.mvc._
 import utils.LoggerHelper
 

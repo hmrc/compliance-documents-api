@@ -36,7 +36,7 @@ object BadRequestErrorResponse {
 
 
   def apply(errors: Seq[OtherError], classDocument: String): BadRequestErrorResponse = {
-    new BadRequestErrorResponse("JSON_VALIDATION_ERROR",
+    new BadRequestErrorResponse("INVALID_PAYLOAD",
       s"The provided JSON was unable to be validated as the $classDocument model.",
       errors
     )

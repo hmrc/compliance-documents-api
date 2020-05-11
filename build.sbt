@@ -1,8 +1,8 @@
+import play.core.PlayVersion.current
+import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
-import play.core.PlayVersion.current
-import scoverage.ScoverageKeys
 
 val appName = "compliance-documents-api"
 
@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "org.pegdown" % "pegdown" % "1.6.0" % "test, it",
   "com.github.java-json-tools"  % "json-schema-validator"     % "2.2.13",
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3" % "test, it",
-  "org.mockito" % "mockito-all" % "1.10.19" % "test",
+  "org.mockito" %% "mockito-scala" % "1.8.0" % "test",
   "com.github.tomakehurst" % "wiremock-standalone" % "2.26.3" % "test, it"
 
 )

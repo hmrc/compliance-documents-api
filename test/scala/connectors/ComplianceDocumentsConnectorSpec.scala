@@ -16,17 +16,14 @@
 
 package scala.connectors
 
-import org.scalatest.{MustMatchers, WordSpec}
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.http.ContentTypes
-import play.api.libs.json.Json
-import play.api.test.Helpers._
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.http.Fault
 import connectors.ComplianceDocumentsConnector
 import play.api.Application
+import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
+import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global

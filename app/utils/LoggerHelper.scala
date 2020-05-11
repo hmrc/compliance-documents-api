@@ -16,40 +16,26 @@
 
 package utils
 
-import play.api.libs.json.{JsNull, JsObject, JsSuccess, JsValue}
+import play.api.libs.json.JsValue
 
 object LoggerHelper {
   def logProcess(className: String,
                  methodName: String,
                  message: String,
                  correlationId: Option[String] = None,
-                 docSize: Option[JsValue] = None,
-                 requestId: Option[Long] = None): String = {
-    s"[$className][$methodName]\n$message${
+                 docSize: Option[JsValue] = None): String = {
+    s"[$className][$methodName] $message${
       addLogOrNothing("correlationId", correlationId)
     }${
       addLogOrNothing("document size", getSize(docSize))
-    }${
-      addLongOrNothing("request ID", requestId)
     }"
   }
 
   def addLogOrNothing(propName: String, documentProperty: Option[String]): String = {
-    if (documentProperty.isDefined) s", $propName: ${documentProperty.get}" else ""
-  }
-
-  def addLongOrNothing(propName: String, documentProperty: Option[Long]): String = {
-    if (documentProperty.isDefined) s", $propName: ${documentProperty.get}" else ""
+    documentProperty.map(doc => (s", $propName: $doc")).getOrElse("")
   }
 
   def getSize(document: Option[JsValue]): Option[String] = {
-    if (document.isDefined && !(document.get == JsNull) && document.isInstanceOf[Option[JsObject]]) {
-      (document.get.asInstanceOf[JsObject] \ "documentBinary").validate[String] match {
-        case JsSuccess(value, _) => Some(value.length.toString)
-        case _ => None
-      }
-    } else {
-      None
-    }
+    document.flatMap(doc => (doc \ "documentBinary").asOpt[String].map(_.length.toString))
   }
 }
