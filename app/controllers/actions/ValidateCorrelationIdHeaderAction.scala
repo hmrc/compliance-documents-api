@@ -17,14 +17,17 @@
 package controllers.actions
 
 import com.google.inject.Inject
+import models.responses.{InvalidCorrelationId, MissingCorrelationId}
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc._
 import utils.LoggerHelper
+import play.api.mvc.Results.BadRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
-case class RequestWithCorrelationId[A](request: Request[A], correlationId: String, valid: Boolean = true) extends WrappedRequest(request)
+case class RequestWithCorrelationId[A](request: Request[A], correlationId: String) extends WrappedRequest(request)
 
 class ValidateCorrelationIdHeaderAction @Inject()(val parser: BodyParsers.Default)
                                                  (implicit val executionContext: ExecutionContext)
@@ -43,17 +46,17 @@ class ValidateCorrelationIdHeaderAction @Inject()(val parser: BodyParsers.Defaul
           Some(correlationId))
         )
         block(RequestWithCorrelationId(request, correlationId))
-      case x =>
+      case invalidCorrelationId =>
         logger.warn(LoggerHelper.logProcess
         ("ValidateCorrelationIdHeaderAction", "invokeBlock", s"invalid CorrelationId found in request",
-          Some(x))
+          Some(invalidCorrelationId))
         )
-        block(RequestWithCorrelationId(request, x, valid = false))
+        Future.successful(BadRequest(Json.toJson(InvalidCorrelationId())))
     }.getOrElse {
       logger.warn(LoggerHelper.logProcess
       ("ValidateCorrelationIdHeaderAction", "invokeBlock", "failed to retrieve CorrelationId in request")
       )
-      block(RequestWithCorrelationId(request, "", valid = false))
+      Future.successful(BadRequest(Json.toJson(MissingCorrelationId())))
     }
   }
 }

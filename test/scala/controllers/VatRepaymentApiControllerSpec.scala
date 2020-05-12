@@ -66,7 +66,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       "return Accepted if given a valid Json body - EF" in {
 
         when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
-          .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("ef"))),
+          .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("ef"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
 
@@ -81,7 +81,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       "return Accepted if given a valid Json body - nReg" in {
 
         when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
-          .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("nReg"))),
+          .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("nReg"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
 
@@ -96,7 +96,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       "return Accepted if given a valid Json body - pReg" in {
 
         when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
-          .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("pReg"))),
+          .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("pReg"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
 
@@ -115,7 +115,19 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
             """
-              |{"code":"JSON_VALIDATION_ERROR","message":"The provided JSON was unable to be validated.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
+{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
+              |""".stripMargin
+          )
+        }
+      }
+      "return BadRequest if given an invalid Json body with an unexpected field present" in {
+        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
+          .withHeaders("CorrelationId" -> correlationId)
+          .withBody(Json.parse(getExample("invalidAddedField")))).map { result =>
+          status(result) shouldBe Status.BAD_REQUEST
+          contentAsJson(result) shouldBe Json.parse(
+            """
+{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation for the ef model. Invalid payload.","errors":[{"code":"UNEXPECTED_FIELD","message":"Unexpected field found","path":"/documentMetadata/wrong"}]}
               |""".stripMargin
           )
         }
@@ -128,7 +140,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
             """
-              |{"message":"Unable to process request.","errors":[{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."}]}
+              |{"code":"INVALID_CORRELATION_ID","message":"Submission has not passed validation. Invalid header CorrelationId."}
               |""".stripMargin
           )
         }
@@ -139,15 +151,15 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
-            """{"message":"Unable to process request.","errors":[{"code":"INVALID_CORRELATIONID",
-              |"message":"Submission has not passed validation. Invalid Header CorrelationId."}]}""".stripMargin
+            """{"code":"MISSING_CORRELATION_ID","message":"Submission has not passed validation. Missing header CorrelationId."}
+              |""".stripMargin
           )
         }
       }
 
       "return InternalServerError if the connector is unsuccessful in communicating with IF" in {
         when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
-          .thenReturn(Future.successful(Left(())))
+          .thenReturn(Future.successful(None))
 
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
           .withHeaders("CorrelationId" -> correlationId)

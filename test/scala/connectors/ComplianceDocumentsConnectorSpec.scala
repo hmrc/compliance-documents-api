@@ -35,6 +35,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
     .build()
 
   protected implicit lazy val hc: HeaderCarrier = HeaderCarrier()
+
   protected def connector = app.injector.instanceOf[ComplianceDocumentsConnector]
 
   val correlationId: String = "some-correlation-id"
@@ -58,7 +59,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
 
       whenReady(connector.vatRepayment(Json.obj("Case" -> "CSC-12394712"), correlationId, documentId)) {
         response =>
-          response.right.get.status mustBe ACCEPTED
+          response.get.status mustBe ACCEPTED
       }
     }
 
@@ -78,7 +79,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
 
       whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId, documentId)) {
         response =>
-          response.right.get.status mustBe BAD_REQUEST
+          response.isDefined mustBe false
       }
     }
 
@@ -95,7 +96,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
 
       whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId, documentId)) {
         response =>
-          response.right.get.status mustBe NOT_FOUND
+          response.isDefined mustBe false
       }
     }
 
@@ -112,7 +113,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
 
       whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId, documentId)) {
         response =>
-          response.right.get.status mustBe UNAUTHORIZED
+          response.isDefined mustBe false
       }
 
     }
@@ -129,7 +130,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
 
       whenReady(connector.vatRepayment(Json.obj("a" -> 1), correlationId, documentId)) {
         response =>
-          response.isLeft mustBe true
+          response.isDefined mustBe false
       }
 
     }

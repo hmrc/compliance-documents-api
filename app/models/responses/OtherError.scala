@@ -23,20 +23,29 @@ class OtherError(val code: String, val reason: String)
 class FieldError(override val code: String, override val reason: String, val path: String) extends OtherError(code, reason)
 
 case class MissingField(override val path: String)
-  extends FieldError(code = "MISSING_FIELD", reason = "Field not present", path)
+  extends FieldError(code = "MISSING_FIELD", reason = "Expected field not present", path)
 
 case class InvalidField(override val path: String)
   extends FieldError(code = "INVALID_FIELD", reason = "Invalid value in field", path)
 
+case class UnexpectedField(override val path: String)
+  extends FieldError(code = "UNEXPECTED_FIELD", reason = "Unexpected field found", path)
 
 case class InvalidDocId()
-  extends OtherError(code = "INVALID_DOCUMENTID", reason = "Submission has not passed validation. Invalid parameter documentId.")
+extends OtherError(code = "INVALID_DOCUMENT_ID", reason = "Submission has not passed validation. Invalid path parameter DocumentId.")
+
+case class MissingDocId()
+extends OtherError(code = "MISSING_DOCUMENT_ID", reason = "Submission has not passed validation. Missing path parameter DocumentId.")
 
 case class InvalidPayload()
   extends OtherError(code = "INVALID_PAYLOAD", reason = "Submission has not passed validation. Invalid payload.")
 
 case class InvalidCorrelationId()
-  extends OtherError(code = "INVALID_CORRELATIONID", reason = "Submission has not passed validation. Invalid Header CorrelationId.")
+  extends OtherError(code = "INVALID_CORRELATION_ID", reason = "Submission has not passed validation. Invalid header CorrelationId.")
+
+case class MissingCorrelationId()
+  extends OtherError(code = "MISSING_CORRELATION_ID", reason = "Submission has not passed validation. Missing header CorrelationId.")
+
 
 object OtherError {
 

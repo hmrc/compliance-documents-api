@@ -51,16 +51,16 @@ class ComplianceDocumentsConnector @Inject()(
   )
 
   def vatRepayment(request: JsValue, correlationId: String, documentId: Long)
-                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[Unit, HttpResponse]] = {
-    httpClient.POST[JsValue, HttpResponse](s"$ifBaseUrl$vatRepaymentUri/$documentId", request, headers(correlationId))(
+                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[HttpResponse]] = {
+    httpClient.POST[JsValue, Option[HttpResponse]](s"$ifBaseUrl$vatRepaymentUri/$documentId", request, headers(correlationId))(
       implicitly, httpReads(correlationId), hc.copy(authorization = Some(Authorization(s"Bearer $bearerToken"))), ec
-    ).map(Right.apply)
+    )
       .recover {
         case e: Exception =>
           logger.error(LoggerHelper.logProcess("ComplianceDocumentsConnector", "vatRepayment",
             s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} " +
               s"(IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)" + e, Some(correlationId), Some(request)))
-          Left(())
+          None
       }
   }
 }

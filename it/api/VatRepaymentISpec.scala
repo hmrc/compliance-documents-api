@@ -22,7 +22,7 @@ class VatRepaymentISpec extends PlaySpec with WireMockSpec with Fixtures {
       response.status mustBe ACCEPTED
     }
 
-    s"return a $BAD_REQUEST if $BAD_REQUEST received from IF" in {
+    s"return a $INTERNAL_SERVER_ERROR if $BAD_REQUEST received from IF" in {
       stubPostWithResponseBody("/organisations/document/4321", BAD_REQUEST, correlationId, Json.obj(
         "code" -> "BAD_REQUEST", "message" -> "Bad request test!"
       ).toString)
@@ -36,7 +36,7 @@ class VatRepaymentISpec extends PlaySpec with WireMockSpec with Fixtures {
         .withHttpHeaders("CorrelationId" -> correlationId)
         .post(createRepaymentDocumentJson))
 
-      response.status mustBe BAD_REQUEST
+      response.status mustBe INTERNAL_SERVER_ERROR
     }
 
     s"return a $UNAUTHORIZED if application is not authorised" in {

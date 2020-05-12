@@ -5,6 +5,7 @@ import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "compliance-documents-api"
+val silencerVersion = "1.7.0"
 
 majorVersion := 0
 scalaVersion := "2.12.11"
@@ -23,8 +24,9 @@ libraryDependencies ++= Seq(
   "com.github.java-json-tools"  % "json-schema-validator"     % "2.2.13",
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3" % "test, it",
   "org.mockito" %% "mockito-scala" % "1.8.0" % "test",
-  "com.github.tomakehurst" % "wiremock-standalone" % "2.26.3" % "test, it"
-
+  "com.github.tomakehurst" % "wiremock-standalone" % "2.26.3" % "test, it",
+  compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
+  "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
 )
 
 ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;"
@@ -38,3 +40,6 @@ integrationTestSettings
 coverageEnabled in(Test, compile) := true
 
 enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
+scalacOptions ++= Seq(
+  "-P:silencer:pathFilters=views;routes"
+)
