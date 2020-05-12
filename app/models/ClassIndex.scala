@@ -16,10 +16,9 @@
 
 package models
 
-import play.api.Logger
-import play.api.libs.json._
-import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
+import play.api.libs.json._
 
 
 trait ClassIndex

@@ -17,9 +17,8 @@
 package scala.models
 
 import models.ClassIndex
+import org.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpec}
-import org.scalatestplus.mockito.MockitoSugar
-import play.api.libs.json
 import play.api.libs.json.{JsError, JsPath, Json}
 
 class ClassIndexSpec extends WordSpec with Matchers with MockitoSugar {

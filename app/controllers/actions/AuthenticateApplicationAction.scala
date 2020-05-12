@@ -17,7 +17,6 @@
 package controllers.actions
 
 import javax.inject.Inject
-import utils.LoggerHelper._
 import play.api.libs.json.Json
 import play.api.mvc.Results.{InternalServerError, Unauthorized}
 import play.api.mvc._
@@ -28,6 +27,7 @@ import uk.gov.hmrc.auth.core.{AuthProvider, AuthProviders, AuthorisationExceptio
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
+import utils.LoggerHelper._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,7 +41,7 @@ class AuthenticateApplicationAction @Inject()(
   lazy val applicationIdIsAllowed: Set[String] = config.get[Option[Seq[String]]]("apiDefinition.whitelistedApplicationIds")
     .getOrElse(Seq.empty[String])
     .toSet
-
+  val logger: Logger = Logger.apply(this.getClass.getSimpleName)
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
@@ -50,18 +50,18 @@ class AuthenticateApplicationAction @Inject()(
       case Some(applicationId) if applicationIdIsAllowed(applicationId) =>
         block(request)
       case _ =>
-        Logger.warn(
+        logger.warn(
           logProcess("AuthenticateApplicationAction", "invokeBlock", "no application id or application id not in request").toString
         )
         Future.successful(Unauthorized(Json.toJson(ErrorUnauthorized)))
     } recover {
       case _: AuthorisationException =>
-        Logger.warn(
+        logger.warn(
           logProcess("AuthenticateApplicationAction", "invokeBlock", "no application id or application id not in request").toString
         )
         Unauthorized(Json.toJson(ErrorUnauthorized))
       case e: Throwable =>
-        Logger.warn(
+        logger.warn(
           logProcess("AuthenticateApplicationAction", "invokeBlock", s"an unexpected exception occurred: $e")
         )
         InternalServerError(Json.toJson(ErrorInternalServerError))

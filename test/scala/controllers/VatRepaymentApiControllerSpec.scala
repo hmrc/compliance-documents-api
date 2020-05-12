@@ -19,15 +19,12 @@ package scala.controllers
 import java.util.UUID
 
 import akka.stream.Materializer
-import config.AppConfig
 import connectors.ComplianceDocumentsConnector
 import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
 import controllers.routes
-import org.mockito.Matchers.{any, eq => eqTo}
-import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
 import org.scalatest.{Matchers, WordSpec}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.http.Status
@@ -38,14 +35,14 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HttpResponse
 
-import scala.exampleData.VatDocumentExample._
 import scala.concurrent.Future
+import scala.exampleData.VatDocumentExample._
 
-class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoSugar with GuiceOneAppPerSuite {
+class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoSugar with ArgumentMatchersSugar with GuiceOneAppPerSuite {
 
   val mockAuthApp: AuthenticateApplicationAction = mock[AuthenticateApplicationAction]
 
-  Mockito.when(mockAuthApp.andThen[Request](any())).thenAnswer(
+  when(mockAuthApp.andThen[Request](any)).thenAnswer(
     (invocation: InvocationOnMock) => invocation.getArguments()(0).asInstanceOf[ValidateCorrelationIdHeaderAction]
   )
 
@@ -68,7 +65,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
     "calling the getResponse route" should {
       "return Accepted if given a valid Json body - EF" in {
 
-        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
+        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
           .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("ef"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
@@ -83,7 +80,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
       "return Accepted if given a valid Json body - nReg" in {
 
-        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
+        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
           .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("nReg"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
@@ -98,7 +95,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
       "return Accepted if given a valid Json body - pReg" in {
 
-        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
+        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
           .thenReturn(Future.successful(Right(HttpResponse(ACCEPTED, Some(Json.parse(getExample("pReg"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
@@ -149,7 +146,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
 
       "return InternalServerError if the connector is unsuccessful in communicating with IF" in {
-        Mockito.when(connector.vatRepayment(any(), eqTo(correlationId), eqTo(documentId.toLong))(any(), any()))
+        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
           .thenReturn(Future.successful(Left(())))
 
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)

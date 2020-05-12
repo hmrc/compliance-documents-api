@@ -16,7 +16,7 @@
 
 package models.responses
 
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{Json, Writes}
 
 class OtherError(val code: String, val reason: String)
 

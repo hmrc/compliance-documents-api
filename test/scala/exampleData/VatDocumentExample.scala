@@ -16,7 +16,7 @@
 
 package scala.exampleData
 
-import models.{ClassIndex, Document, DocumentMetadata, EF, NReg, PReg}
+import models._
 
 object VatDocumentExample {
   val dTRN: String = "9443402451823"

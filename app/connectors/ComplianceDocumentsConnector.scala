@@ -18,13 +18,12 @@ package connectors
 
 import connectors.httpParsers.ComplianceDocumentsConnectorParser
 import javax.inject._
-import play.api.{Configuration, Logger}
 import play.api.http.{ContentTypes, HeaderNames}
 import play.api.libs.json.JsValue
+import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import play.api.http.Status.{ACCEPTED, BAD_REQUEST, NOT_FOUND}
 import utils.LoggerHelper
 
 import scala.concurrent.{ExecutionContext, Future}

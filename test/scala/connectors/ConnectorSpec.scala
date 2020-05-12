@@ -16,15 +16,10 @@
 
 package scala.connectors
 
-import connectors.ComplianceDocumentsConnector
-import org.scalatest.{MustMatchers, WordSpec}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.{MustMatchers, WordSpec}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
 
 trait ConnectorSpec extends WordSpec with MustMatchers with GuiceOneAppPerSuite
   with WireMockHelper with ScalaFutures with IntegrationPatience {
