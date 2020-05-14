@@ -36,7 +36,6 @@ import java.io.IOException
 
 import com.google.inject.Inject
 import play.api.Environment
-import play.api.libs.json.{JsValue, Json}
 
 import scala.io.Source
 
@@ -49,6 +48,4 @@ class ResourceService @Inject()(environment: Environment) {
 
     Source.fromInputStream(stream).mkString
   }
-
-  def getJson(resource: String): JsValue = Json.parse(getFile(resource))
 }

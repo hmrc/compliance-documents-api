@@ -35,7 +35,7 @@
           "oneOf": [
             {
               "type": "object",
-              "additionalProperties": false,
+              "additionalProperties": true,
               "required": [
                 "ef"
               ],
@@ -47,7 +47,7 @@
             },
             {
               "type": "object",
-              "additionalProperties": false,
+              "additionalProperties": true,
               "required": [
                 "nReg"
               ],
@@ -59,7 +59,7 @@
             },
             {
               "type": "object",
-              "additionalProperties": false,
+              "additionalProperties": true,
               "required": [
                 "pReg"
               ],
@@ -133,86 +133,20 @@
     },
     "classIndexEF": {
       "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "dTRN"
-      ],
+      "additionalProperties": true,
       "properties": {
-        "dTRN": {
-          "description": "Mandatory. The trader’s registration number including VAT number and suffix",
-          "type": "string",
-          "pattern": "^[0-9]{13}$",
-          "example": "4563845950000"
-        },
-        "locationCode": {
-          "$ref": "#/definitions/locationCodeType"
-        },
-        "category": {
-          "description": "Optional. A valid category defined on the backend",
-          "type": "string",
-          "pattern": "^[A-Za-z0-9 -]{1,12}$"
-        },
-        "enquiryReference": {
-          "$ref": "#/definitions/enquiryReferenceType"
-        },
-        "caseReference": {
-          "$ref": "#/definitions/caseReferenceType"
-        }
       }
     },
     "classIndexNReg": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
-        "name": {
-          "description": "Optional.",
-          "type": "string",
-          "pattern": "^[A-Za-z0-9 '.&/-]{1,105}$"
-        },
-        "postCode": {
-          "$ref": "#/definitions/postCodeType"
-        },
-        "callerReference": {
-          "description": "Optional.",
-          "type": "string",
-          "pattern": "^[A-Za-z0-9 -]{1,8}$"
-        },
-        "enquiryReference": {
-          "$ref": "#/definitions/enquiryReferenceType"
-        },
-        "caseReference": {
-          "$ref": "#/definitions/caseReferenceType"
-        }
       }
     },
     "classIndexPReg": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
-        "caseReference": {
-          "$ref": "#/definitions/caseReferenceType"
-        },
-        "name": {
-          "description": "Optional.",
-          "type": "string",
-          "pattern": "^[A-Za-z0-9 '.&/-]{1,105}$"
-        },
-        "postCode": {
-          "$ref": "#/definitions/postCodeType"
-        },
-        "outcomeStatus": {
-          "description": "Optional.",
-          "type": "string",
-          "pattern": "^[A-Za-z0-9 -]{1,20}$"
-        },
-        "riskScore": {
-          "description": "Optional.",
-          "type": "string",
-          "pattern": "^[0-9]{3}$"
-        },
-        "locationCode": {
-          "$ref": "#/definitions/locationCodeType"
-        }
       }
     },
     "locationCodeType": {

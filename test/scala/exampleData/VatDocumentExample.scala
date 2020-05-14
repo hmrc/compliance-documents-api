@@ -16,8 +16,6 @@
 
 package scala.exampleData
 
-import models._
-
 object VatDocumentExample {
   val dTRN: String = "9443402451823"
   val locCode: String = "731"
@@ -68,20 +66,6 @@ object VatDocumentExample {
        |""".stripMargin
   val riskScore: Short = 345
 
-  val pRegValidDocument: Document = Document("0123456789ABCDEF",
-    `documentMetadata` = DocumentMetadata(
-      PReg(Some("ABC01234"), Some("John Doe"), Some("AA99AA"), Some("Un  -successful1"), Some(riskScore), Some(locCode)),
-      "VoHl",
-      "2000-02-29",
-      Some("fS6k2abFoTNuirZSLQw7"),
-      Some(docPages),
-      "400e406e13d5835aedfa61bff05299a9",
-      "qVX29XN0iireH",
-      "doc",
-      Some("*AUTO*"),
-      "YIfD"
-    ))
-
   val nRegInvalid: String =
     """
       |      "nReg": {
@@ -103,20 +87,6 @@ object VatDocumentExample {
       |        "caseReference": "ABC01234"
       |      }
       |""".stripMargin
-
-  val nRegValidDocument: Document = Document("0123456789ABCDEF",
-    `documentMetadata` = DocumentMetadata(
-      NReg(Some("John Doe"), Some("AA99AA"), Some("Ref -001"), Some("UYp3V0"), Some("ABC01234")),
-      "VoHl",
-      "2000-02-29",
-      Some("fS6k2abFoTNuirZSLQw7"),
-      Some(docPages),
-      "400e406e13d5835aedfa61bff05299a9",
-      "qVX29XN0iireH",
-      "doc",
-      Some("*AUTO*"),
-      "YIfD"
-    ))
 
   def minWithEmptySpace(classIndex: String, isValidAllocateToUser: Boolean = true, addedField: Boolean = false, isMissingDocBinary: Boolean = false) = {
     s"""
@@ -185,19 +155,6 @@ object VatDocumentExample {
        |""".stripMargin
   }
 
-  val efValidDocument: Document = Document("0123456789ABCDEF",
-    `documentMetadata` = DocumentMetadata(
-      EF(dTRN, Some(locCode), Some("a-Category1"), Some("UYp3V0"), Some("ABC01234")),
-      "VoHl",
-      "2000-02-29",
-      Some("fS6k2abFoTNuirZSLQw7"),
-      Some(docPages),
-      "400e406e13d5835aedfa61bff05299a9",
-      "qVX29XN0iireH",
-      "doc",
-      Some("*AUTO*"),
-      "YIfD"
-    ))
   val badDocument =
     """
       |"notRight": {
@@ -205,6 +162,14 @@ object VatDocumentExample {
       |}
       |""".stripMargin
 
+  val notTrueJsonClassDoc =
+  """
+      |{
+      |"documentMetadata": {
+      | "classIndex": ["asdasd"]
+      |}
+      |}
+      |""".stripMargin
   def getExample(classIndex: String) = classIndex match {
     case "ef" => minWithEmptySpace(ef)
     case "pReg" => minWithEmptySpace(pReg)
@@ -258,7 +223,7 @@ object VatDocumentExample {
       |          "oneOf": [
       |            {
       |              "type": "object",
-      |              "additionalProperties": false,
+      |              "additionalProperties": true,
       |              "required": [
       |                "ef"
       |              ],
@@ -270,7 +235,7 @@ object VatDocumentExample {
       |            },
       |            {
       |              "type": "object",
-      |              "additionalProperties": false,
+      |              "additionalProperties": true,
       |              "required": [
       |                "nReg"
       |              ],
@@ -282,7 +247,7 @@ object VatDocumentExample {
       |            },
       |            {
       |              "type": "object",
-      |              "additionalProperties": false,
+      |              "additionalProperties": true,
       |              "required": [
       |                "pReg"
       |              ],
@@ -356,86 +321,20 @@ object VatDocumentExample {
       |    },
       |    "classIndexEF": {
       |      "type": "object",
-      |      "additionalProperties": false,
-      |      "required": [
-      |        "dTRN"
-      |      ],
+      |      "additionalProperties": true,
       |      "properties": {
-      |        "dTRN": {
-      |          "description": "Mandatory. The trader’s registration number including VAT number and suffix",
-      |          "type": "string",
-      |          "pattern": "^[0-9]{13}$",
-      |          "example": "4563845950000"
-      |        },
-      |        "locationCode": {
-      |          "$ref": "#/definitions/locationCodeType"
-      |        },
-      |        "category": {
-      |          "description": "Optional. A valid category defined on the backend",
-      |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9 -]{1,12}$"
-      |        },
-      |        "enquiryReference": {
-      |          "$ref": "#/definitions/enquiryReferenceType"
-      |        },
-      |        "caseReference": {
-      |          "$ref": "#/definitions/caseReferenceType"
-      |        }
       |      }
       |    },
       |    "classIndexNReg": {
       |      "type": "object",
-      |      "additionalProperties": false,
+      |      "additionalProperties": true,
       |      "properties": {
-      |        "name": {
-      |          "description": "Optional.",
-      |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9 '.&/-]{1,105}$"
-      |        },
-      |        "postCode": {
-      |          "$ref": "#/definitions/postCodeType"
-      |        },
-      |        "callerReference": {
-      |          "description": "Optional.",
-      |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9 -]{1,8}$"
-      |        },
-      |        "enquiryReference": {
-      |          "$ref": "#/definitions/enquiryReferenceType"
-      |        },
-      |        "caseReference": {
-      |          "$ref": "#/definitions/caseReferenceType"
-      |        }
       |      }
       |    },
       |    "classIndexPReg": {
       |      "type": "object",
-      |      "additionalProperties": false,
+      |      "additionalProperties": true,
       |      "properties": {
-      |        "caseReference": {
-      |          "$ref": "#/definitions/caseReferenceType"
-      |        },
-      |        "name": {
-      |          "description": "Optional.",
-      |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9 '.&/-]{1,105}$"
-      |        },
-      |        "postCode": {
-      |          "$ref": "#/definitions/postCodeType"
-      |        },
-      |        "outcomeStatus": {
-      |          "description": "Optional.",
-      |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9 -]{1,20}$"
-      |        },
-      |        "riskScore": {
-      |          "description": "Optional.",
-      |          "type": "string",
-      |          "pattern": "^[0-9]{3}$"
-      |        },
-      |        "locationCode": {
-      |          "$ref": "#/definitions/locationCodeType"
-      |        }
       |      }
       |    },
       |    "locationCodeType": {
@@ -491,6 +390,159 @@ object VatDocumentExample {
       |              }
       |            }
       |          }
+      |        }
+      |      }
+      |    }
+      |  }
+      |}
+      |""".stripMargin
+  val efSchema: String =
+    """
+      |{
+      |  "$schema": "http://json-schema.org/draft-07/schema",
+      |  "$id": "http://example.com/example.json",
+      |  "type": "object",
+      |  "title": "The EF-doc schema",
+      |  "description": "",
+      |  "required": [
+      |    "ef"
+      |  ],
+      |  "additionalProperties": true,
+      |  "properties": {
+      |    "ef": {
+      |      "type": "object",
+      |      "additionalProperties": false,
+      |      "required": [
+      |        "dTRN"
+      |      ],
+      |      "properties": {
+      |        "dTRN": {
+      |          "description": "Mandatory. The trader’s registration number including VAT number and suffix",
+      |          "type": "string",
+      |          "pattern": "^[0-9]{13}$",
+      |          "example": "4563845950000"
+      |        },
+      |        "locationCode": {
+      |          "description": "Optional. Trader location code; it must be padded with leading zeros if less than 100, for example '081'",
+      |          "type": "string",
+      |          "pattern": "^[0-9]{3}$",
+      |          "example": "250"
+      |        },
+      |        "category": {
+      |          "description": "Optional. A valid category defined on the backend",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 -]{1,12}$"
+      |        },
+      |        "enquiryReference": {
+      |          "description": "Optional. Used for storing the reference of a contact centre enquiry",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 -]{1,12}$"
+      |        },
+      |        "caseReference": {
+      |          "description": "Optional. Used for identifying the case the document is associated with",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 -]{1,14}$"
+      |        }
+      |      }
+      |    }
+      |  }
+      |}
+      |""".stripMargin
+  val pRegSchema: String =
+    """
+      |{
+      |  "$schema": "http://json-schema.org/draft-07/schema",
+      |  "$id": "http://example.com/example.json",
+      |  "type": "object",
+      |  "title": "The pReg-doc schema",
+      |  "description": "",
+      |  "required": [
+      |    "pReg"
+      |  ],
+      |  "additionalProperties": true,
+      |  "properties": {
+      |    "pReg": {
+      |      "type": "object",
+      |      "additionalProperties": false,
+      |      "properties": {
+      |        "caseReference": {
+      |          "description": "Optional. Used for identifying the case the document is associated with",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 -]{1,14}$"
+      |        },
+      |        "name": {
+      |          "description": "Optional.",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 '.&/-]{1,105}$"
+      |        },
+      |        "postCode": {
+      |          "description": "Optional. Used for identifying the case the document is associated with",
+      |          "type": "string",
+      |          "pattern": "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$"
+      |        },
+      |        "outcomeStatus": {
+      |          "description": "Optional.",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 -]{1,20}$"
+      |        },
+      |        "riskScore": {
+      |          "description": "Optional.",
+      |          "type": "string",
+      |          "pattern": "^[0-9]{3}$"
+      |        },
+      |        "locationCode": {
+      |          "description": "Optional. Trader location code; it must be padded with leading zeros if less than 100, for example '081'",
+      |          "type": "string",
+      |          "pattern": "^[0-9]{3}$",
+      |          "example": "250"
+      |        }
+      |      }
+      |    }
+      |  }
+      |}
+      |
+      |""".stripMargin
+  val nRegSchema: String =
+    """
+      |{
+      |  "$schema": "http://json-schema.org/draft-07/schema",
+      |  "$id": "http://example.com/example.json",
+      |  "type": "object",
+      |  "title": "The nReg-doc schema",
+      |  "description": "",
+      |  "required": [
+      |    "nReg"
+      |  ],
+      |  "additionalProperties": true,
+      |  "properties": {
+      |    "nReg": {
+      |      "type": "object",
+      |      "additionalProperties": false,
+      |      "properties": {
+      |        "name": {
+      |          "description": "Optional.",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 '.&/-]{1,105}$"
+      |        },
+      |        "postCode": {
+      |          "description": "Optional. Used for identifying the case the document is associated with",
+      |          "type": "string",
+      |          "pattern": "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$"
+      |        },
+      |        "callerReference": {
+      |          "description": "Optional.",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 -]{1,8}$"
+      |        },
+      |        "enquiryReference": {
+      |          "description": "Optional. Used for storing the reference of a contact centre enquiry",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 -]{1,12}$"
+      |        },
+      |        "caseReference": {
+      |          "description": "Optional. Used for identifying the case the document is associated with",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9 -]{1,14}$"
       |        }
       |      }
       |    }

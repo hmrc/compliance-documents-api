@@ -19,10 +19,9 @@ package controllers
 import connectors.ComplianceDocumentsConnector
 import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
 import javax.inject._
-import models.Document
 import play.api.Logger
 import play.api.http.ContentTypes
-import play.api.libs.json.{JsNull, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ValidationService
 import uk.gov.hmrc.api.controllers.ErrorInternalServerError
@@ -45,21 +44,21 @@ class VatRepaymentApiController @Inject()(
 
   def postRepaymentData(documentId: String): Action[AnyContent] = (authenticateApplication andThen getCorrelationId).async { implicit request =>
 
-    val input = request.body.asJson.getOrElse(JsNull)
+    val input = request.body.asJson.getOrElse(Json.parse("{}"))
     logger.info(logProcess("VatRepaymentApiController",
       "postRepaymentData",
       s"Post request received",
       Some(request.correlationId),
       Some(input)))
-    validator.validate[Document](input, documentId) match {
-      case Right(_) =>
+    validator.validate(input, documentId) match {
+      case None =>
         logger.info(logProcess("VatRepaymentApiController", "postRepaymentData: Right",
           s"Request received - passing on to IF", Some(request.correlationId), Some(input)))
         complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId.toLong).map {
           el =>
             el.map(response => responseMapper(response)) getOrElse InternalServerError(Json.toJson(ErrorInternalServerError))
         }
-      case Left(errors) =>
+      case Some(errors) =>
         logger.warn(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",
           s"request body didn't match json with errors: ${Json.prettyPrint(errors)}",
           Some(request.correlationId), Some(input)))

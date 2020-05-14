@@ -37,7 +37,7 @@ class ResourceServiceSpec extends WordSpec with MustMatchers with GuiceOneAppPer
   "The resource service" should {
     "return an exception" in {
       try {
-        service.getJson("/schemas/nonexistent.json")
+        service.getFile("/schemas/nonexistent.json")
       } catch {
         case e: Exception =>
           e mustBe an[Exception]

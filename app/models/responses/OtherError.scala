@@ -31,11 +31,14 @@ case class InvalidField(override val path: String)
 case class UnexpectedField(override val path: String)
   extends FieldError(code = "UNEXPECTED_FIELD", reason = "Unexpected field found", path)
 
+case class InvalidJsonType(override val path: String = "")
+  extends FieldError(code = "INVALID_JSON_TYPE", reason = "Invalid Json type as payload", path)
+
 case class InvalidDocId()
-extends OtherError(code = "INVALID_DOCUMENT_ID", reason = "Submission has not passed validation. Invalid path parameter DocumentId.")
+  extends OtherError(code = "INVALID_DOCUMENT_ID", reason = "Submission has not passed validation. Invalid path parameter DocumentId.")
 
 case class MissingDocId()
-extends OtherError(code = "MISSING_DOCUMENT_ID", reason = "Submission has not passed validation. Missing path parameter DocumentId.")
+  extends OtherError(code = "MISSING_DOCUMENT_ID", reason = "Submission has not passed validation. Missing path parameter DocumentId.")
 
 case class InvalidPayload()
   extends OtherError(code = "INVALID_PAYLOAD", reason = "Submission has not passed validation. Invalid payload.")
