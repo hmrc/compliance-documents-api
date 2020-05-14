@@ -20,36 +20,21 @@ import play.api.libs.json.{Json, Writes}
 
 case class BadRequestErrorResponse(code: String, message: String, errors: Seq[OtherError])
 
-case class BadRequestCorrDoc(message: String, errors: Seq[OtherError])
-
-object BadRequestCorrDoc {
-  implicit def badRequestCorrDocWrites: Writes[BadRequestCorrDoc] = Json.writes[BadRequestCorrDoc]
-
-  def apply(errors: Seq[OtherError]) = {
-    new BadRequestCorrDoc("Unable to process request.", errors)
-  }
-}
-
 object BadRequestErrorResponse {
   implicit def badRequestWrites: Writes[BadRequestErrorResponse] = Json.writes[BadRequestErrorResponse]
 
 
-
   def apply(errors: Seq[OtherError], classDocument: String): BadRequestErrorResponse = {
     new BadRequestErrorResponse("INVALID_PAYLOAD",
-      s"The provided JSON was unable to be validated as the $classDocument model.",
+      s"Submission has not passed validation for the $classDocument model. Invalid payload.",
       errors
     )
   }
 
   def apply(errors: Seq[OtherError], classDocument: Option[String]): BadRequestErrorResponse = {
-    val message = if (classDocument.isDefined) {
-      s"The provided JSON was unable to be validated as the ${classDocument.get.filter(char => char.isLetter)} model."
-    }
-    else {
-      "The provided JSON was unable to be validated."
-    }
-    new BadRequestErrorResponse("JSON_VALIDATION_ERROR",
+    val message = "Submission has not passed validation" +
+      classDocument.map(classDoc => s" for the ${classDoc.filter(char => char.isLetter)} model. Invalid payload.").getOrElse(". Invalid payload.")
+    new BadRequestErrorResponse("INVALID_PAYLOAD",
       message,
       errors
     )

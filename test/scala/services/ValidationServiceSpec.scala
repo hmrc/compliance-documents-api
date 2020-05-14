@@ -53,35 +53,18 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
   "The validation service" should {
     "return errors when model does not map properly" in {
       Mockito.when(mockResource.getFile(any)).thenReturn("{}")
-      validationService.validate[Document](Json.parse(getExample("justInvalid")), "1234", validCorrelationId = true).left.get mustBe Json.parse(
+      validationService.validate[Document](Json.parse(getExample("justInvalid")), "1234").left.get mustBe Json.parse(
         """
-{"code":"JSON_VALIDATION_ERROR","message":"The provided JSON was unable to be validated as the ef model.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
+{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation for the ef model. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex//dTRN"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docDate"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryHash"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryRef"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docType"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryType"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/creatingUser"},{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload."}]}
           |""".stripMargin
       )
     }
 
-    "return INVALID_CORRELATIONID if given wrong correlation id" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema)
-      validationService.validate[Document](Json.parse(getExample("ef")), "1234", validCorrelationId = false).left.get mustBe Json.parse(
-        """
- {"message":"Unable to process request.","errors":[{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."}]}
-          |""".stripMargin
-      )
-    }
-
-    "return INVALID_DOCUMENTID if given wrong document id" in {
+    "return INVALID_DOCUMENT_ID if given wrong document id" in {
       Mockito.when(mockResource.getFile(any)).thenReturn(schema)
       validationService.validate[Document](Json.parse(getExample("pReg")), "1234a").left.get mustBe Json.parse(
         """
-          |{"message":"Unable to process request.","errors":[{"code":"INVALID_DOCUMENTID","message":"Submission has not passed validation. Invalid parameter documentId."}]}
-          |""".stripMargin
-      )
-    }
-    "return INVALID_CORRELATIONID, INVALID_PAYLOAD and INVALID_DOCUMENTID if all are wrong" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema)
-      validationService.validate[Document](Json.parse(getExample("efInvalid")), "1234a", validCorrelationId = false).left.get mustBe Json.parse(
-        """
-          |{"message":"Unable to process request.","errors":[{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload."},{"code":"INVALID_CORRELATIONID","message":"Submission has not passed validation. Invalid Header CorrelationId."},{"code":"INVALID_DOCUMENTID","message":"Submission has not passed validation. Invalid parameter documentId."}]}
+          |{"code":"INVALID_DOCUMENT_ID","message":"Submission has not passed validation. Invalid path parameter DocumentId."}
           |""".stripMargin
       )
     }
@@ -97,14 +80,44 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       Mockito.when(mockResource.getFile(any)).thenReturn(schema)
       assert(validationService.validate[Document](Json.parse(getExample("pReg")), "1234").isRight)
     }
+    "return bad request if given invalid classIndex" in {
+      when(mockResource.getFile(any)).thenReturn(schema)
+      val resultOfBadOne = validationService.validate[Document](Json.parse(minWithEmptySpace(badDocument)), "1234")
+      assert(resultOfBadOne.isLeft)
+      resultOfBadOne.left.get mustBe Json.parse(
+        """
+          |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
+          |""".stripMargin
+      )
+
+    }
     "return bad request if given invalid input with one field not matching Regex" in {
       Mockito.when(mockResource.getFile(any)).thenReturn(schema)
       val resultOfBadOne = validationService.validate[Document](Json.parse(getExample("invalidNoMissing")), "1234")
       assert(resultOfBadOne.isLeft)
+      resultOfBadOne.left.get mustBe Json.parse(
+        """
+          |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation for the ef model. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryType"}]}
+          |""".stripMargin)
+    }
+    "return bad request if given invalid input with both missing & unexpected fields" in {
+      Mockito.when(mockResource.getFile(any)).thenReturn(schema)
+      val resultOfBadOne = validationService.validate[Document](Json.parse(getExample("unexpectedAndMissing")), "1234")
+      resultOfBadOne.left.get mustBe Json.parse(
+        """
+{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation for the ef model. Invalid payload.","errors":[{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentBinary"},{"code":"UNEXPECTED_FIELD","message":"Unexpected field found","path":"/documentMetadata/wrong"}]}
+""".stripMargin
+      )
     }
     "return bad request if given valid input that doesn't match the model" in {
       Mockito.when(mockResource.getFile(any)).thenReturn(invalidSchema)
-      assert(validationService.validate[Document](Json.parse(fitsInvalidSchema), "1234").isLeft)
+      val resultOfBadOne = validationService.validate[Document](Json.parse(fitsInvalidSchema), "1234")
+      assert(resultOfBadOne.isLeft)
+      resultOfBadOne.left.get mustBe Json.parse(
+        """
+          |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation for the ef model. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docDate"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryHash"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryRef"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docType"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryType"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/creatingUser"},{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload."}]}
+          |""".stripMargin
+      )
     }
   }
   "The validate doc type method" should {

@@ -25,29 +25,40 @@ trait ComplianceDocumentsConnectorParser {
   val className: String
   val logger: Logger
 
-  def httpReads(correlationId: String): HttpReads[HttpResponse] = (_, url, response) => {
+  def httpReads(correlationId: String): HttpReads[Option[HttpResponse]] = (_, url, response) => {
 
     response.status match {
-      case NOT_FOUND => logger.warn(
-        logProcess(className, "connector parser",
-          s"received a not found status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_NOT_FOUND_RESPONSE )",
-          Some(correlationId))
-      )
-      case BAD_REQUEST => logger.warn(
-        logProcess(className, "connector parser",
-          s"received a bad request status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_BAD_REQUEST_RESPONSE )",
-          Some(correlationId))
-      )
-      case status if status != ACCEPTED => logger.warn(
-        logProcess(className, "connector parser",
-          s"received status $status when calling $url",
-          Some(correlationId))
-      )
-      case _ => logger.info(logProcess(className, "connector parser",
-        s"received an accepted when calling $url",
-        Some(correlationId)))
+      case NOT_FOUND => {
+        logger.warn(
+          logProcess(className, "connector parser",
+            s"received a not found status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_NOT_FOUND_RESPONSE )",
+            Some(correlationId))
+        )
+        None
+      }
+      case BAD_REQUEST => {
+        logger.warn(
+          logProcess(className, "connector parser",
+            s"received a bad request status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_BAD_REQUEST_RESPONSE )",
+            Some(correlationId))
+        )
+        None
+      }
+      case status if status != ACCEPTED => {
+        logger.warn(
+          logProcess(className, "connector parser",
+            s"received status $status when calling $url ( IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_RESPONSE )",
+            Some(correlationId))
+        )
+        None
+      }
+      case _ => {
+        logger.info(logProcess(className, "connector parser",
+          s"received an accepted when calling $url",
+          Some(correlationId)))
+        Some(response)
+      }
     }
 
-    response
   }
 }

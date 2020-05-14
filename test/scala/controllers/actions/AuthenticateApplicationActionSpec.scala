@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package scala.controllers.actions
+package controllers.actions
 
-import controllers.actions.AuthenticateApplicationAction
 import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
 import org.scalatest.{Matchers, WordSpec}
+import org.slf4j.MDC
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.mvc.{BodyParsers, Result}
@@ -28,6 +28,8 @@ import play.api.{ConfigLoader, Configuration}
 import uk.gov.hmrc.auth.core.AuthProvider.StandardApplication
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.{AuthProviders, BearerTokenExpired}
+import uk.gov.hmrc.http.logging.{RequestId, SessionId}
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,6 +46,38 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
 
     def mockBody: Future[Result] = Future.successful(Ok("{}"))
   }
+
+  "updateContextWithRequestId" should {
+    "update context with request id if MDC is empty and only request id is in the header carrier" in new Setup {
+      MDC.clear()
+      implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))
+      action.updateContextWithRequestId
+      MDC.get(HeaderNames.xRequestId) shouldBe "one-two-three"
+      Option(MDC.get(HeaderNames.xSessionId)) shouldBe None
+    }
+    "update context with request and session ids if MDC is empty  and " in new Setup {
+      MDC.clear()
+      implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")), sessionId = Some(SessionId("one-two-four")))
+      action.updateContextWithRequestId
+      MDC.get(HeaderNames.xRequestId) shouldBe "one-two-three"
+      MDC.get(HeaderNames.xSessionId) shouldBe "one-two-four"
+    }
+    "do not update context if it exists" in new Setup {
+      MDC.clear()
+      MDC.put(HeaderNames.xRequestId, "silly")
+      implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))
+      action.updateContextWithRequestId
+      MDC.get(HeaderNames.xRequestId) shouldBe "silly"
+    }
+    "do not update context if it exists with no request id" in new Setup {
+      MDC.clear()
+      MDC.put("weee", "silly")
+      implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))
+      action.updateContextWithRequestId
+      Option(MDC.get(HeaderNames.xRequestId)) shouldBe None
+    }
+  }
+
 
   "action.async" should {
     s"return a $OK if application id matches a whitelisted application id" in new Setup {
@@ -97,6 +131,23 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
 
       status(result) shouldBe INTERNAL_SERVER_ERROR
       contentAsJson(result) shouldBe Json.obj("code" -> "INTERNAL_SERVER_ERROR", "message" -> "Internal server error")
+    }
+
+    "allow an updateContextWithRequestId to work" in new Setup {
+
+      when(mockAuthConnector.authorise(eqTo(AuthProviders(StandardApplication)), eqTo(Retrievals.applicationId))(any, any))
+        .thenReturn(Future.successful(Some("ID-BEINGCHECKED")))
+
+      when(mockConfig.get(eqTo("apiDefinition.whitelistedApplicationIds"))(any[ConfigLoader[Option[Seq[String]]]]))
+        .thenReturn(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
+
+      val result: Future[Result] = action.async(mockBody)(
+        FakeRequest()
+          .withHeaders("X-Request-ID" -> "asdfasdf")
+          .withHeaders("X-Session-ID" -> "sessionIdTestTest")
+      )
+      status(result) shouldBe OK
+      contentAsJson(result) shouldBe Json.obj()
     }
   }
 }

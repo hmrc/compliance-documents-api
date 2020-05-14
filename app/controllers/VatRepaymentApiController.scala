@@ -44,19 +44,20 @@ class VatRepaymentApiController @Inject()(
   private val logger: Logger = Logger(this.getClass)
 
   def postRepaymentData(documentId: String): Action[AnyContent] = (authenticateApplication andThen getCorrelationId).async { implicit request =>
+
     val input = request.body.asJson.getOrElse(JsNull)
     logger.info(logProcess("VatRepaymentApiController",
       "postRepaymentData",
       s"Post request received",
       Some(request.correlationId),
       Some(input)))
-
-    validator.validate[Document](input, documentId, request.valid) match {
+    validator.validate[Document](input, documentId) match {
       case Right(_) =>
         logger.info(logProcess("VatRepaymentApiController", "postRepaymentData: Right",
           s"Request received - passing on to IF", Some(request.correlationId), Some(input)))
         complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId.toLong).map {
-          _.fold[Result](_ => InternalServerError(Json.toJson(ErrorInternalServerError)), responseMapper)
+          el =>
+            el.map(response => responseMapper(response)) getOrElse InternalServerError(Json.toJson(ErrorInternalServerError))
         }
       case Left(errors) =>
         logger.warn(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",

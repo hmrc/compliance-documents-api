@@ -118,13 +118,20 @@ object VatDocumentExample {
       "YIfD"
     ))
 
-  def minWithEmptySpace(classIndex: String, isValidAllocateToUser: Boolean = true) = {
+  def minWithEmptySpace(classIndex: String, isValidAllocateToUser: Boolean = true, addedField: Boolean = false, isMissingDocBinary: Boolean = false) = {
     s"""
        |{
-       |  "documentBinary": "0123456789ABCDEF",
+       |  ${
+      if (!isMissingDocBinary) {
+        """
+        "documentBinary": "0123456789ABCDEF",
+       |""".stripMargin
+      } else {
+        ""
+      }
+    }
        |  "documentMetadata": {
-       |    "classIndex": {
-       |      $classIndex
+       |    "classIndex": {$classIndex
        |    },
        |    "docType": "VoHl",
        |    "docDate": "2000-02-29",
@@ -147,10 +154,20 @@ object VatDocumentExample {
         """"allocateToUser": "INVALIDINVALIDINVALID""""
       }
     }
-       |  }
-       |}
-       |
+       |  ${
+      if (addedField) {
+        ""","wrong": "aaa""""
+      } else {
+        ""
+      }
+    }
+       | }
+       | }
        |""".stripMargin
+  }
+
+  def invalidAddedField(classIndex: String) = {
+    minWithEmptySpace(classIndex, addedField = true)
   }
 
   def invalidWithEmptySpace(classIndex: String) = {
@@ -181,7 +198,12 @@ object VatDocumentExample {
       Some("*AUTO*"),
       "YIfD"
     ))
-
+  val badDocument =
+    """
+      |"notRight": {
+      | "thing": "aaaaa"
+      |}
+      |""".stripMargin
 
   def getExample(classIndex: String) = classIndex match {
     case "ef" => minWithEmptySpace(ef)
@@ -191,7 +213,9 @@ object VatDocumentExample {
     case "pRegInvalid" => minWithEmptySpace(pRegInvalid)
     case "nRegInvalid" => minWithEmptySpace(nRegInvalid)
     case "justInvalid" => invalidWithEmptySpace(efInvalid)
+    case "invalidAddedField" => invalidAddedField(ef)
     case "invalidNoMissing" => minWithEmptySpace(ef, isValidAllocateToUser = false)
+    case "unexpectedAndMissing" => minWithEmptySpace(ef, true, true, true)
     case _ => ""
   }
 

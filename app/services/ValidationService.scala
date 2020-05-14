@@ -21,8 +21,7 @@ import com.github.fge.jsonschema.core.report.{ListReportProvider, LogLevel, Proc
 import com.github.fge.jsonschema.main.JsonSchemaFactory
 import com.google.inject.Inject
 import models.responses._
-import models.{ClassIndex, EF, NReg, PReg}
-import play.api.libs.json._
+import play.api.libs.json.{Json, _}
 import play.api.mvc._
 
 import scala.collection.JavaConverters._
@@ -53,20 +52,25 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     def getResult(schema: String, docType: String): Either[BadRequestErrorResponse, Unit] = {
       val result = validateInternallyAgainstSchema(schema, docJson)
       if (result.isSuccess) Right(()) else {
-        val errors = getJsonObjs(result, "/documentMetadata/classIndex")
+        val errors = getJsonObjs(result)
         Left(
           BadRequestErrorResponse(errors, docType)
         )
       }
     }
 
-    (docJson \ "documentMetadata" \ "classIndex").validate[ClassIndex] match {
-      case JsSuccess(_: EF, _) => getResult(addDocumentSchema, "ef")
-      case JsSuccess(_: NReg, _) => getResult(addDocumentSchema, "nReg")
-      case JsSuccess(_: PReg, _) => getResult(addDocumentSchema, "pReg")
-      case JsError(errors) => Left(mappingErrorResponse(errors.map {
-        case (_, errors) => (__ \ "documentMetadata" \ "classIndex", errors)
-      }, getClassDoc(docJson.toString())))
+    (docJson \ "documentMetadata" \ "classIndex").validate[JsObject] match {
+      case JsSuccess(x, _) if x.keys("ef") => getResult(addDocumentSchema, "ef")
+      case JsSuccess(x, _) if x.keys("nReg") => getResult(addDocumentSchema, "nReg")
+      case JsSuccess(x, _) if x.keys("pReg") => getResult(addDocumentSchema, "pReg")
+      case JsSuccess(_, _) =>
+        val unknownClass = __ \ "documentMetadata" \ "classIndex"
+        Left(mappingErrorResponse(JsError(unknownClass, "invalid class type provided").errors,
+          None))
+      case JsError(errors) =>
+        Left(mappingErrorResponse(errors.map {
+          case (_, errors) => (__ \ "documentMetadata" \ "classIndex", errors)
+        }, getClassDoc(docJson.toString())))
     }
   }
 
@@ -80,18 +84,24 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     ).toList).getOrElse(List())
   }
 
+  def getUnexpectedFields(processingMessage: ProcessingMessage, prefix: String = ""): List[UnexpectedField] = {
+    Option(processingMessage.asJson().get("unwanted")).map(_.asScala.map(
+      instanceName => UnexpectedField(path = s"${getFieldName(processingMessage, prefix)}/${instanceName.asText()}")
+    ).toList).getOrElse(List())
+  }
 
   def getJsonObjs(result: ProcessingReport, prefix: String = ""): immutable.Seq[FieldError] = {
     result.iterator.asScala.toList
       .flatMap {
         error =>
           val missingFields = getMissingFields(error, prefix)
-          if (missingFields.isEmpty) {
+          val unexpectedFields = getUnexpectedFields(error, prefix)
+          if (missingFields.isEmpty && unexpectedFields.isEmpty) {
             List(
               InvalidField(getFieldName(error, prefix))
             )
           } else {
-            missingFields
+            if (missingFields.isEmpty) unexpectedFields else missingFields
           }
       }
   }
@@ -107,9 +117,9 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     }
   }
 
-  def validate[A](input: JsValue, docId: String = "", validCorrelationId: Boolean = true, schemaString: String = addDocumentSchema)
+  def validate[A](input: JsValue, docId: String = "")
                  (implicit rds: Reads[A]): Either[JsValue, Unit] = {
-    if (checkDocId(docId) && validCorrelationId) {
+    if (checkDocId(docId)) {
       validateDocType(input.as[JsValue]).flatMap(_ =>
         Json.fromJson[A](input) match {
           case JsSuccess(_, _) => Right(())
@@ -126,12 +136,8 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
           Right(valid)
         })
     } else {
-      val result = validateInternallyAgainstSchema(schemaString, input)
-      //Uncomment if want to log request json
-      //      logger.debug(Json.prettyPrint(input))
-      val errors = getAllNonJsonErrors(result, validCorrelationId, docId)
       Left(
-        Json.toJson(BadRequestCorrDoc(errors))
+        Json.toJson(InvalidDocId())
       )
     }
   }
@@ -140,34 +146,9 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     List(""""ef":""", "nReg", "pReg").collectFirst {
       case el if toFindIn.contains(el) => el
     }
-
-  }
-
-  def getAllNonJsonErrors(result: ProcessingReport, validCorrelationId: Boolean, docId: String) = {
-    List(addCorrIdError(validCorrelationId, _), addDocIdError(docId, _))
-      .foldLeft(checkPayload(result)) { (previous, function) => function(previous) }
-
   }
 
   def checkDocId(docId: String) = {
     Try(docId.toLong).isSuccess
   }
-
-  def addDocIdError(docId: String, errors: Seq[OtherError]) = {
-    if (!checkDocId(docId)) errors ++ List(InvalidDocId()) else errors
-  }
-
-  def addCorrIdError(validCorrelationId: Boolean, errors: Seq[OtherError]) = {
-    if (!validCorrelationId) errors ++ List(InvalidCorrelationId()) else errors
-  }
-
-  def checkPayload(result: ProcessingReport) = {
-    result.iterator.asScala.toList.headOption match {
-      case Some(_) =>
-        List(InvalidPayload()).asInstanceOf[Seq[OtherError]]
-      case None =>
-        List()
-    }
-  }
-
 }
