@@ -12,6 +12,7 @@ scalaVersion := "2.12.11"
 
 lazy val microservice = Project(appName, file("."))
   .configs(IntegrationTest)
+  .disablePlugins(JUnitXmlReportPlugin)
   .settings(PlayKeys.playDefaultPort := 7053)
 
 
