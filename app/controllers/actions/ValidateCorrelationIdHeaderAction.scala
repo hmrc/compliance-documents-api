@@ -20,9 +20,9 @@ import com.google.inject.Inject
 import models.responses.{InvalidCorrelationId, MissingCorrelationId}
 import play.api.Logger
 import play.api.libs.json.Json
+import play.api.mvc.Results.BadRequest
 import play.api.mvc._
 import utils.LoggerHelper
-import play.api.mvc.Results.BadRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex

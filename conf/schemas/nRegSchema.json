@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "title": "The nReg-doc schema",
+  "description": "",
+  "required": [
+    "nReg"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "nReg": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "Optional.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9 '.&/-]{1,105}$"
+        },
+        "postCode": {
+          "description": "Optional. Used for identifying the case the document is associated with",
+          "type": "string",
+          "pattern": "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$"
+        },
+        "callerReference": {
+          "description": "Optional.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9 -]{1,8}$"
+        },
+        "enquiryReference": {
+          "description": "Optional. Used for storing the reference of a contact centre enquiry",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9 -]{1,12}$"
+        },
+        "caseReference": {
+          "description": "Optional. Used for identifying the case the document is associated with",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9 -]{1,14}$"
+        }
+      }
+    }
+  }
+}

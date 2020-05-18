@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "title": "The EF-doc schema",
+  "description": "",
+  "required": [
+    "ef"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "ef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dTRN"
+      ],
+      "properties": {
+        "dTRN": {
+          "description": "Mandatory. The trader’s registration number including VAT number and suffix",
+          "type": "string",
+          "pattern": "^[0-9]{13}$",
+          "example": "4563845950000"
+        },
+        "locationCode": {
+          "description": "Optional. Trader location code; it must be padded with leading zeros if less than 100, for example '081'",
+          "type": "string",
+          "pattern": "^[0-9]{3}$",
+          "example": "250"
+        },
+        "category": {
+          "description": "Optional. A valid category defined on the backend",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9 -]{1,12}$"
+        },
+        "enquiryReference": {
+          "description": "Optional. Used for storing the reference of a contact centre enquiry",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9 -]{1,12}$"
+        },
+        "caseReference": {
+          "description": "Optional. Used for identifying the case the document is associated with",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9 -]{1,14}$"
+        }
+      }
+    }
+  }
+}

@@ -22,17 +22,16 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory
 import com.google.inject.Inject
 import models.responses._
 import play.api.libs.json.{Json, _}
-import play.api.mvc._
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable
-import scala.concurrent.ExecutionContext
-import scala.util.Try
 
-class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources: ResourceService)
-                                 (implicit val ec: ExecutionContext) {
+class ValidationService @Inject()(resources: ResourceService) {
 
-  private lazy val addDocumentSchema = resources.getFile("/schemas/addDocumentSchema.json")
+  private lazy val efSchema = resources.getFile("/schemas/efSchema.json")
+  private lazy val nRegSchema = resources.getFile("/schemas/nRegSchema.json")
+  private lazy val pRegSchema = resources.getFile("/schemas/pRegSchema.json")
+  private lazy val addDocumentSchemaNoClassType = resources.getFile("/schemas/addDocumentSchemaNoClassType.json")
 
 
   private val factory = JsonSchemaFactory
@@ -46,32 +45,6 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     val json = JsonLoader.fromString(Json.stringify(input))
     val schema = factory.getJsonSchema(schemaJson)
     schema.validate(json, true)
-  }
-
-  def validateDocType(docJson: JsValue): Either[BadRequestErrorResponse, Unit] = {
-    def getResult(schema: String, docType: String): Either[BadRequestErrorResponse, Unit] = {
-      val result = validateInternallyAgainstSchema(schema, docJson)
-      if (result.isSuccess) Right(()) else {
-        val errors = getJsonObjs(result)
-        Left(
-          BadRequestErrorResponse(errors, docType)
-        )
-      }
-    }
-
-    (docJson \ "documentMetadata" \ "classIndex").validate[JsObject] match {
-      case JsSuccess(x, _) if x.keys("ef") => getResult(addDocumentSchema, "ef")
-      case JsSuccess(x, _) if x.keys("nReg") => getResult(addDocumentSchema, "nReg")
-      case JsSuccess(x, _) if x.keys("pReg") => getResult(addDocumentSchema, "pReg")
-      case JsSuccess(_, _) =>
-        val unknownClass = __ \ "documentMetadata" \ "classIndex"
-        Left(mappingErrorResponse(JsError(unknownClass, "invalid class type provided").errors,
-          None))
-      case JsError(errors) =>
-        Left(mappingErrorResponse(errors.map {
-          case (_, errors) => (__ \ "documentMetadata" \ "classIndex", errors)
-        }, getClassDoc(docJson.toString())))
-    }
   }
 
   def getFieldName(processingMessage: ProcessingMessage, prefix: String = ""): String = {
@@ -90,8 +63,8 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     ).toList).getOrElse(List())
   }
 
-  def getJsonObjs(result: ProcessingReport, prefix: String = ""): immutable.Seq[FieldError] = {
-    result.iterator.asScala.toList
+  def getFieldErrorsFromReport(report: ProcessingReport, prefix: String = ""): immutable.Seq[FieldError] = {
+    report.iterator.asScala.toList
       .flatMap {
         error =>
           val missingFields = getMissingFields(error, prefix)
@@ -106,6 +79,28 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
       }
   }
 
+  def validateDocType(docJson: JsValue): Either[BadRequestErrorResponse, Unit] = {
+    def getResult(schema: String): Either[BadRequestErrorResponse, Unit] = {
+      val result = validateInternallyAgainstSchema(schema, (docJson \ "documentMetadata" \ "classIndex").as[JsValue])
+      if (!result.isSuccess) {
+        Left(BadRequestErrorResponse(getFieldErrorsFromReport(result, "/documentMetadata/classIndex"), getClassDoc(docJson)))
+      } else {
+        Right(())
+      }
+    }
+
+    (docJson \ "documentMetadata" \ "classIndex").validate[JsObject] match {
+      case JsSuccess(x, _) if x.keys("ef") => getResult(efSchema)
+      case JsSuccess(x, _) if x.keys("pReg") => getResult(pRegSchema)
+      case JsSuccess(x, _) if x.keys("nReg") => getResult(nRegSchema)
+      case JsError(errors) =>
+        Left(mappingErrorResponse(errors.map {
+          case (_, errors) =>
+            (__ \ "documentMetadata" \ "classIndex", errors)
+        }, getClassDoc(docJson)))
+    }
+  }
+
   private def mappingErrorResponse(mappingErrors: Seq[(JsPath, Seq[JsonValidationError])], typeOfDoc: Option[String]): BadRequestErrorResponse = {
     val errors = mapErrors(mappingErrors)
     BadRequestErrorResponse(errors, typeOfDoc)
@@ -117,38 +112,48 @@ class ValidationService @Inject()(val bodyParser: BodyParsers.Default, resources
     }
   }
 
-  def validate[A](input: JsValue, docId: String = "")
-                 (implicit rds: Reads[A]): Either[JsValue, Unit] = {
-    if (checkDocId(docId)) {
-      validateDocType(input.as[JsValue]).flatMap(_ =>
-        Json.fromJson[A](input) match {
-          case JsSuccess(_, _) => Right(())
-          case JsError(errors) =>
-            Left(
-              BadRequestErrorResponse((mapErrors(errors) ++ List(InvalidPayload())), getClassDoc(input.toString))
-            )
-        }
-      ).fold(
-        invalid => {
-          Left(Json.toJson(invalid))
-        },
-        valid => {
-          Right(valid)
-        })
+  def validateJsonObj(input: JsValue): Option[JsValue] = {
+    input.asOpt[JsObject]
+
+  }
+
+
+  def validate(input: JsValue, docId: String = ""): Option[JsValue] = {
+    def makeThingWork() = {
+      val result = validateInternallyAgainstSchema(addDocumentSchemaNoClassType, input)
+      if (result.isSuccess) {
+        validateDocType(input)
+          .fold(invalid => Some(Json.toJson(invalid)), _ => None)
+      } else {
+        Some(
+          Json.toJson(BadRequestErrorResponse(getFieldErrorsFromReport(result), None))
+        )
+      }
+    }
+    if (checkDocIdMatchesRegex(docId)) {
+      if (validateJsonObj(input).isDefined) {
+        makeThingWork()
+      }
+      else {
+        Some(Json.toJson(InvalidJsonType()))
+      }
+
     } else {
-      Left(
+      Some(
         Json.toJson(InvalidDocId())
       )
     }
   }
 
-  def getClassDoc(toFindIn: String): Option[String] = {
-    List(""""ef":""", "nReg", "pReg").collectFirst {
-      case el if toFindIn.contains(el) => el
+  def getClassDoc(toFindIn: JsValue): Option[String] = {
+    List("ef", "nReg", "pReg").collectFirst {
+      case el if (toFindIn \ "documentMetadata" \ "classIndex").asOpt[JsObject]
+        .fold(ifEmpty = false)(classIndex => classIndex.keys(el)) => el
+
     }
   }
 
-  def checkDocId(docId: String) = {
-    Try(docId.toLong).isSuccess
+  def checkDocIdMatchesRegex(docId: String): Boolean = {
+    docId.matches("^(([0-9]{1,19})|(1[0-7][0-9]{18})|(18[0-3][0-9]{17})|(184[0-3][0-9]{16}))$")
   }
 }

@@ -24,16 +24,9 @@ object BadRequestErrorResponse {
   implicit def badRequestWrites: Writes[BadRequestErrorResponse] = Json.writes[BadRequestErrorResponse]
 
 
-  def apply(errors: Seq[OtherError], classDocument: String): BadRequestErrorResponse = {
-    new BadRequestErrorResponse("INVALID_PAYLOAD",
-      s"Submission has not passed validation for the $classDocument model. Invalid payload.",
-      errors
-    )
-  }
-
   def apply(errors: Seq[OtherError], classDocument: Option[String]): BadRequestErrorResponse = {
     val message = "Submission has not passed validation" +
-      classDocument.map(classDoc => s" for the ${classDoc.filter(char => char.isLetter)} model. Invalid payload.").getOrElse(". Invalid payload.")
+      classDocument.map(classDoc => s" for the $classDoc model. Invalid payload.").getOrElse(". Invalid payload.")
     new BadRequestErrorResponse("INVALID_PAYLOAD",
       message,
       errors

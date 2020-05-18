@@ -115,8 +115,8 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
             """
-{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
-              |""".stripMargin
+{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentBinary"},{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentMetadata"}]}
+""".stripMargin
           )
         }
       }
@@ -127,7 +127,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
           status(result) shouldBe Status.BAD_REQUEST
           contentAsJson(result) shouldBe Json.parse(
             """
-{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation for the ef model. Invalid payload.","errors":[{"code":"UNEXPECTED_FIELD","message":"Unexpected field found","path":"/documentMetadata/wrong"}]}
+{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"UNEXPECTED_FIELD","message":"Unexpected field found","path":"/documentMetadata/wrong"}]}
               |""".stripMargin
           )
         }
