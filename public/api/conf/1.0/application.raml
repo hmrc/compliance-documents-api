@@ -40,8 +40,8 @@ uses:
 
         is: [headers.acceptHeader, headers.contentHeader, correlationIDHeader.correlationID]
 
-        (annotations.scope): "write:compliance-documents-api"
-        securedBy: [ sec.x-application: { scopes: [ "write:compliance-documents-api" ] } ]
+        (annotations.scope): "write:protect-connect"
+        securedBy: [ sec.x-application: { scopes: [ "write:protect-connect" ] } ]
 
         body:
           application/json:
