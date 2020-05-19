@@ -28,7 +28,6 @@ import utils.LoggerHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
 class ComplianceDocumentsConnector @Inject()(
                                               httpClient: HttpClient,
                                               config: Configuration

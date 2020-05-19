@@ -32,7 +32,6 @@ import utils.LoggerHelper._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton()
 class VatRepaymentApiController @Inject()(
                                            validator: ValidationService,
                                            complianceDocumentsConnector: ComplianceDocumentsConnector,
