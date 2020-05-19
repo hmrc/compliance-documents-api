@@ -119,20 +119,17 @@ class ValidationService @Inject()(resources: ResourceService) {
 
 
   def validate(input: JsValue, docId: String = ""): Option[JsValue] = {
-    def makeThingWork() = {
-      val result = validateInternallyAgainstSchema(addDocumentSchemaNoClassType, input)
-      if (result.isSuccess) {
-        validateDocType(input)
-          .fold(invalid => Some(Json.toJson(invalid)), _ => None)
-      } else {
-        Some(
-          Json.toJson(BadRequestErrorResponse(getFieldErrorsFromReport(result), None))
-        )
-      }
-    }
     if (checkDocIdMatchesRegex(docId)) {
       if (validateJsonObj(input).isDefined) {
-        makeThingWork()
+        val result = validateInternallyAgainstSchema(addDocumentSchemaNoClassType, input)
+        if (result.isSuccess) {
+          validateDocType(input)
+            .fold(invalid => Some(Json.toJson(invalid)), _ => None)
+        } else {
+          Some(
+            Json.toJson(BadRequestErrorResponse(getFieldErrorsFromReport(result), None))
+          )
+        }
       }
       else {
         Some(Json.toJson(InvalidJsonType()))

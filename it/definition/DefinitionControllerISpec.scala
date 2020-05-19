@@ -21,9 +21,9 @@ class DefinitionControllerISpec extends PlaySpec with GuiceOneServerPerSuite wit
            |{
            |  "scopes": [
            |    {
-           |      "key": "write:compliance-documents-api",
-           |      "name": "Vat Repayment Info",
-           |      "description": "Post documents to EF"
+           |      "key": "write:protect-connect",
+           |      "name": "Protect Connect",
+           |      "description": "Scope for accessing protect connect APIs"
            |    }
            |  ],
            |  "api": {
