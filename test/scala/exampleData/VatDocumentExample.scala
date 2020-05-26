@@ -188,7 +188,7 @@ object VatDocumentExample {
     """
       |{
       |  "$schema": "http://json-schema.org/draft-07/schema#",
-      |  "title": "IF API#1562 Store Document request schema v1.1.0",
+      |  "title": "IF API#1562 Store Document request schema v1.3.0",
       |  "type": "object",
       |  "additionalProperties": false,
       |  "required": [
@@ -197,8 +197,10 @@ object VatDocumentExample {
       |  ],
       |  "properties": {
       |    "documentBinary": {
-      |      "description": "The actual Base64 encoded document",
-      |      "type": "string"
+      |      "description": "The actual Base64 encoded document, maximum size ~10MB",
+      |      "type": "string",
+      |      "format": "binary",
+      |      "maxLength": 14680064
       |    },
       |    "documentMetadata": {
       |      "$ref": "#/definitions/documentMetadata"
@@ -273,7 +275,7 @@ object VatDocumentExample {
       |        "docDescription": {
       |          "description": "Optional. A brief description of the document.",
       |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9 ,]{1,30}$"
+      |          "pattern": "^[A-Za-z0-9 &'*+,./:;?{|}\\(\\)\\-\\[\\]]{1,30}$"
       |        },
       |        "docPages": {
       |          "description": "Optional. If the document is multi-page then the number of pages.",
@@ -287,7 +289,7 @@ object VatDocumentExample {
       |        "docBinaryRef": {
       |          "description": "Mandatory. A Windows filename for the document. Can be a string representation of the 'documentId' URI path parameter.",
       |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9]{1,25}$"
+      |          "pattern": "^[A-Za-z0-9¡-ÿ !#$%&'+,.;=@^_`{}~\\(\\)\\-\\[\\]]{1,25}$"
       |        },
       |        "docBinaryType": {
       |          "description": "Mandatory. A Windows filename extension for the document.",
@@ -308,13 +310,13 @@ object VatDocumentExample {
       |        "allocateToUser": {
       |          "description": "User ID of the user or team to whom this document must be allocated for action. Use ‘*AUTO*’ to indicate that the document should be allocated based on automatic routing rules.",
       |          "type": "string",
-      |          "pattern": "^([A-Za-z0-9]{4,8})|(\\*AUTO\\*)$",
+      |          "pattern": "^(([A-Za-z0-9]{4,8})|(\\*AUTO\\*))$",
       |          "example": "*AUTO*"
       |        },
       |        "creatingUser": {
-      |          "description": "A user specific to the sending system",
+      |          "description": "A valid ICLipse user id",
       |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9]{4,8}$",
+      |          "pattern": "^[A-Za-z0-9 &'*+,./:;?{|}\\(\\)\\-\\[\\]]{4,8}$",
       |          "example": "PROTCONN"
       |        }
       |      }

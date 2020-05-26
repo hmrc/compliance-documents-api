@@ -123,13 +123,13 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
       )
 
     }
-    "return bad request if given invalid input with one field not matching Regex" in {
+    "return bad request if given invalid input with fields not matching Regex" in {
       Mockito.when(mockResource.getFile(any)).thenReturn(schema)
       val resultOfBadOne = validationService.validate(Json.parse(getExample("invalidNoMissing")), "1234")
       assert(resultOfBadOne.isDefined)
       resultOfBadOne.get mustBe Json.parse(
         """
-          |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryType"}]}
+          |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/allocateToUser"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryType"}]}
           |""".stripMargin)
     }
 
