@@ -49,7 +49,7 @@ class ComplianceDocumentsConnector @Inject()(
     "Environment" -> iFEnvironment
   )
 
-  def vatRepayment(request: JsValue, correlationId: String, documentId: Long)
+  def vatRepayment(request: JsValue, correlationId: String, documentId: String)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[HttpResponse]] = {
     httpClient.POST[JsValue, Option[HttpResponse]](s"$ifBaseUrl$vatRepaymentUri/$documentId", request, headers(correlationId))(
       implicitly, httpReads(correlationId), hc.copy(authorization = Some(Authorization(s"Bearer $bearerToken"))), ec
