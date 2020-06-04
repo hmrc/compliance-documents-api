@@ -31,16 +31,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
-    .configure("integration-framework.base-url" -> s"http://localhost:${server.port}")
+    .configure("integration-framework.base-url" -> s"http://localhost:${server.port}", "auditing.enabled" -> false)
     .build()
 
   protected implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
-  protected def connector = app.injector.instanceOf[ComplianceDocumentsConnector]
-
   val correlationId: String = "some-correlation-id"
   val authId: String = "Bearer some-token"
   val documentId: String = "4321"
+
+  protected def connector = app.injector.instanceOf[ComplianceDocumentsConnector]
 
   "The Compliance Documents connector" should {
     "return a 202 when given Json" in {

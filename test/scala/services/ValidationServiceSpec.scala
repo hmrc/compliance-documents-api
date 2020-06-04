@@ -16,40 +16,28 @@
 
 package scala.services
 
-import akka.stream.Materializer
 import models.responses.{BadRequestErrorResponse, InvalidField}
-import org.mockito.{ArgumentMatchersSugar, Mockito, MockitoSugar}
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json.Json
 import services.{ResourceService, ValidationService}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.exampleData.VatDocumentExample._
 
-class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar
-  with ScalaFutures with IntegrationPatience with BeforeAndAfterEach with ArgumentMatchersSugar {
+class ValidationServiceSpec extends WordSpec with Matchers with MockFactory {
 
   implicit lazy val hc: HeaderCarrier = HeaderCarrier(sessionId = None)
-
-  implicit lazy val materializer: Materializer = app.materializer
 
   val mockResource = mock[ResourceService]
 
   def validationService = new ValidationService(mockResource)
 
 
-  override def beforeEach(): Unit = {
-    super.beforeEach()
-    reset(mockResource)
-  }
-
 
   "The validation service" should {
     "return errors when model does not map properly" in {
-      when(mockResource.getFile(any)).thenReturn(
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(
         """{
           |  "$schema": "http://json-schema.org/draft-04/schema#",
           |  "title": "Mapping tester",
@@ -65,7 +53,7 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
           |  }
           |}
           |""".stripMargin)
-      validationService.validate(Json.parse(getExample("justInvalid")), "1234").get mustBe Json.parse(
+      validationService.validate(Json.parse(getExample("justInvalid")), "1234").get shouldBe Json.parse(
         """
 {"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":""}]}
 """.stripMargin
@@ -73,50 +61,52 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
     }
 
     "return INVALID_DOCUMENT_ID if given wrong document id" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema)
-      validationService.validate(Json.parse(getExample("pReg")), "1234a").get mustBe Json.parse(
+      validationService.validate(Json.parse(getExample("pReg")), "1234a").get shouldBe Json.parse(
         """
           |{"code":"INVALID_DOCUMENT_ID","message":"Submission has not passed validation. Invalid path parameter DocumentId."}
           |""".stripMargin
       )
     }
     "return nothing if given valid input - EF" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema).thenReturn(efSchema)
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(schema).once()
+      (mockResource.getFile _).expects("/schemas/efSchema.json").returns(efSchema).once()
       assert(validationService.validate(Json.parse(getExample("ef")), "1234").isEmpty)
     }
     "return nothing if given valid input - nReg" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema).thenReturn(nRegSchema)
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(schema).once()
+      (mockResource.getFile _).expects("/schemas/nRegSchema.json").returns(nRegSchema).once()
       assert(validationService.validate(Json.parse(getExample("nReg")), "1234").isEmpty)
     }
     "return nothing if given valid input - pReg" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema).thenReturn(pRegSchema)
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(schema).once()
+      (mockResource.getFile _).expects("/schemas/pRegSchema.json").returns(pRegSchema).once()
       assert(validationService.validate(Json.parse(getExample("pReg")), "1234").isEmpty)
     }
     "return bad request if given invalid input for a valid classIndex" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema).thenReturn(efSchema)
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(schema).once()
+      (mockResource.getFile _).expects("/schemas/efSchema.json").returns(efSchema).once()
       val resultOfBadOne = validationService.validate(Json.parse(getExample("efInvalid")), "1234")
       assert(resultOfBadOne.isDefined)
-      resultOfBadOne.get mustBe Json.parse(
+      resultOfBadOne.get shouldBe Json.parse(
         """
           |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation for the ef model. Invalid payload.","errors":[{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentMetadata/classIndex/ef/dTRN"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex/ef/locationCode"}]}
           |""".stripMargin
       )
     }
     "return an invalidJsonType if given wrong Json" in {
-      when(mockResource.getFile(any)).thenReturn(schema)
       val resultOfBadOne = validationService.validate(Json.parse("""["test"]"""), "1234")
       assert(resultOfBadOne.isDefined)
-      resultOfBadOne.get mustBe Json.parse(
+      resultOfBadOne.get shouldBe Json.parse(
         """
           |{"code":"INVALID_JSON_TYPE","message":"Invalid Json type as payload","path":""}
           |""".stripMargin
       )
     }
     "return bad request if given invalid classIndex" in {
-      when(mockResource.getFile(any)).thenReturn(schema)
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(schema).once()
       val resultOfBadOne = validationService.validate(Json.parse(minWithEmptySpace(badDocument)), "1234")
       assert(resultOfBadOne.isDefined)
-      resultOfBadOne.get mustBe Json.parse(
+      resultOfBadOne.get shouldBe Json.parse(
         """
           |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
           |""".stripMargin
@@ -124,28 +114,29 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
 
     }
     "return bad request if given invalid input with fields not matching Regex" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema)
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(schema).once()
       val resultOfBadOne = validationService.validate(Json.parse(getExample("invalidNoMissing")), "1234")
       assert(resultOfBadOne.isDefined)
-      resultOfBadOne.get mustBe Json.parse(
+      resultOfBadOne.get shouldBe Json.parse(
         """
           |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/allocateToUser"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/docBinaryType"}]}
           |""".stripMargin)
     }
 
     "return bad request if given invalid input with both missing & unexpected fields" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema)
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(schema).once()
       val resultOfBadOne = validationService.validate(Json.parse(getExample("unexpectedAndMissing")), "1234")
-      resultOfBadOne.get mustBe Json.parse(
+      resultOfBadOne.get shouldBe Json.parse(
         """
 {"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentBinary"},{"code":"UNEXPECTED_FIELD","message":"Unexpected field found","path":"/documentMetadata/wrong"}]}
 """.stripMargin
       )
     }
     "return a bad request if given a good document with invalid classdoc parameters" in {
-      Mockito.when(mockResource.getFile(any)).thenReturn(schema).thenReturn(efSchema)
+      (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(schema).once()
+      (mockResource.getFile _).expects("/schemas/efSchema.json").returns(efSchema).once()
       val resultOfBadOne = validationService.validate(Json.parse(minWithEmptySpace(efInvalid)), "1234")
-      resultOfBadOne.get mustBe Json.parse(
+      resultOfBadOne.get shouldBe Json.parse(
         """
           |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation for the ef model. Invalid payload.","errors":[{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentMetadata/classIndex/ef/dTRN"},{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex/ef/locationCode"}]}
           |""".stripMargin
@@ -154,10 +145,9 @@ class ValidationServiceSpec extends PlaySpec with GuiceOneAppPerSuite with Mocki
   }
   "The document validation service" should {
     "return bad request if given document with a class doc that's not Json" in {
-      when(mockResource.getFile(any)).thenReturn(schema)
       val resultOfBadOne = validationService.validateDocType(Json.parse(notTrueJsonClassDoc))
       assert(resultOfBadOne.isLeft)
-      resultOfBadOne.left.get mustBe BadRequestErrorResponse(
+      resultOfBadOne.left.get shouldBe BadRequestErrorResponse(
         List(InvalidField("/documentMetadata/classIndex")),
         None
       )

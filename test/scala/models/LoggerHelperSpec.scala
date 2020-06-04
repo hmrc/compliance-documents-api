@@ -16,11 +16,10 @@
 
 package scala.models
 
-import org.mockito.MockitoSugar
 import org.scalatest.{Matchers, WordSpec}
 import utils.LoggerHelper
 
-class LoggerHelperSpec extends WordSpec with Matchers with MockitoSugar{
+class LoggerHelperSpec extends WordSpec with Matchers {
   "The Logger Helper" when {
     "logging a process" should {
       "return a correct format without correlation id" in {

@@ -18,13 +18,11 @@ package scala.services
 
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{MustMatchers, WordSpec}
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Environment
 import services.ResourceService
 import uk.gov.hmrc.http.HeaderCarrier
 
-class ResourceServiceSpec extends WordSpec with MustMatchers with GuiceOneAppPerSuite with MockitoSugar
+class ResourceServiceSpec extends WordSpec with MustMatchers
   with ScalaFutures with IntegrationPatience {
 
   private val env = Environment.simple()

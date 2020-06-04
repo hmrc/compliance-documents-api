@@ -16,7 +16,7 @@
 
 package controllers.actions
 
-import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.{Matchers, WordSpec}
 import org.slf4j.MDC
 import play.api.libs.json.Json
@@ -26,18 +26,21 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.{ConfigLoader, Configuration}
 import uk.gov.hmrc.auth.core.AuthProvider.StandardApplication
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.{AuthProviders, BearerTokenExpired}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, BearerTokenExpired}
 import uk.gov.hmrc.http.logging.{RequestId, SessionId}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
-import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthenticateApplicationActionSpec extends WordSpec with Matchers with ArgumentMatchersSugar with MockitoSugar {
+class AuthenticateApplicationActionSpec extends WordSpec with Matchers with MockFactory {
 
   class Setup {
-    val mockAuthConnector: DefaultAuthConnector = mock[DefaultAuthConnector]
+    implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))
+
+    val mockAuthConnector: AuthConnector = mock[AuthConnector]
     val mockConfig: Configuration = mock[Configuration]
     val mockBodyParser: BodyParsers.Default = new BodyParsers.Default(stubControllerComponents().parsers)
     implicit val ec: ExecutionContext = ExecutionContext.global
@@ -50,14 +53,13 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
   "updateContextWithRequestId" should {
     "update context with request id if MDC is empty and only request id is in the header carrier" in new Setup {
       MDC.clear()
-      implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))
       action.updateContextWithRequestId
       MDC.get(HeaderNames.xRequestId) shouldBe "one-two-three"
       Option(MDC.get(HeaderNames.xSessionId)) shouldBe None
     }
     "update context with request and session ids if MDC is empty  and " in new Setup {
       MDC.clear()
-      implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")), sessionId = Some(SessionId("one-two-four")))
+      override implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")), sessionId = Some(SessionId("one-two-four")))
       action.updateContextWithRequestId
       MDC.get(HeaderNames.xRequestId) shouldBe "one-two-three"
       MDC.get(HeaderNames.xSessionId) shouldBe "one-two-four"
@@ -65,14 +67,12 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
     "do not update context if it exists" in new Setup {
       MDC.clear()
       MDC.put(HeaderNames.xRequestId, "silly")
-      implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))
       action.updateContextWithRequestId
       MDC.get(HeaderNames.xRequestId) shouldBe "silly"
     }
     "do not update context if it exists with no request id" in new Setup {
       MDC.clear()
       MDC.put("weee", "silly")
-      implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))
       action.updateContextWithRequestId
       Option(MDC.get(HeaderNames.xRequestId)) shouldBe None
     }
@@ -81,11 +81,13 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
 
   "action.async" should {
     s"return a $OK if application id matches a whitelisted application id" in new Setup {
-      when(mockAuthConnector.authorise(eqTo(AuthProviders(StandardApplication)), eqTo(Retrievals.applicationId))(any, any))
-        .thenReturn(Future.successful(Some("ID-BEINGCHECKED")))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+        .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
+        .returns(Future.successful(Some("ID-BEINGCHECKED")))
 
-      when(mockConfig.get(eqTo("apiDefinition.whitelistedApplicationIds"))(any[ConfigLoader[Option[Seq[String]]]]))
-        .thenReturn(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
+      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
+        .expects("apiDefinition.whitelistedApplicationIds",*)
+        .returns(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
 
       val result: Future[Result] = action.async(mockBody)(FakeRequest())
 
@@ -93,8 +95,10 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
       contentAsJson(result) shouldBe Json.obj()
     }
     s"return a $UNAUTHORIZED if not authorised by auth" in new Setup {
-      when(mockAuthConnector.authorise(eqTo(AuthProviders(StandardApplication)), eqTo(Retrievals.applicationId))(any, any))
-        .thenReturn(Future.failed(BearerTokenExpired("an exception has occurred")))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+        .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
+        .returns(Future.failed(BearerTokenExpired("an exception has occurred")))
+
 
       val result: Future[Result] = action.async(mockBody)(FakeRequest())
 
@@ -102,8 +106,9 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
       contentAsJson(result) shouldBe Json.obj("code" -> "UNAUTHORIZED", "message" -> "Bearer token is missing or not authorized")
     }
     s"return a $UNAUTHORIZED if no application id is present" in new Setup {
-      when(mockAuthConnector.authorise(eqTo(AuthProviders(StandardApplication)), eqTo(Retrievals.applicationId))(any, any))
-        .thenReturn(Future.successful(None))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+        .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
+        .returns(Future.successful(None))
 
       val result: Future[Result] = action.async(mockBody)(FakeRequest())
 
@@ -111,11 +116,13 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
       contentAsJson(result) shouldBe Json.obj("code" -> "UNAUTHORIZED", "message" -> "Bearer token is missing or not authorized")
     }
     s"return a $UNAUTHORIZED if application id doesn't match a whitelisted application id" in new Setup {
-      when(mockAuthConnector.authorise(eqTo(AuthProviders(StandardApplication)), eqTo(Retrievals.applicationId))(any, any))
-        .thenReturn(Future.successful(Some("ID-3")))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+        .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
+        .returns(Future.successful(Some("ID-3")))
 
-      when(mockConfig.get(eqTo("apiDefinition.whitelistedApplicationIds"))(any[ConfigLoader[Option[Seq[String]]]]))
-        .thenReturn(Some(Seq("ID-1", "ID-2")))
+      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
+        .expects("apiDefinition.whitelistedApplicationIds",*)
+        .returns(Some(Seq("ID-1", "ID-2")))
 
       val result: Future[Result] = action.async(mockBody)(FakeRequest())
 
@@ -124,8 +131,9 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
     }
 
     s"return a $INTERNAL_SERVER_ERROR if an unexpected exception occurs" in new Setup {
-      when(mockAuthConnector.authorise(eqTo(AuthProviders(StandardApplication)), eqTo(Retrievals.applicationId))(any, any))
-        .thenReturn(Future.failed(new NullPointerException("error")))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+        .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
+        .returns(Future.failed(new NullPointerException("error")))
 
       val result: Future[Result] = action.async(mockBody)(FakeRequest())
 
@@ -135,11 +143,13 @@ class AuthenticateApplicationActionSpec extends WordSpec with Matchers with Argu
 
     "allow an updateContextWithRequestId to work" in new Setup {
 
-      when(mockAuthConnector.authorise(eqTo(AuthProviders(StandardApplication)), eqTo(Retrievals.applicationId))(any, any))
-        .thenReturn(Future.successful(Some("ID-BEINGCHECKED")))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+        .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
+        .returns(Future.successful(Some("ID-BEINGCHECKED")))
 
-      when(mockConfig.get(eqTo("apiDefinition.whitelistedApplicationIds"))(any[ConfigLoader[Option[Seq[String]]]]))
-        .thenReturn(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
+      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
+        .expects("apiDefinition.whitelistedApplicationIds",*)
+        .returns(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
 
       val result: Future[Result] = action.async(mockBody)(
         FakeRequest()

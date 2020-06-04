@@ -22,11 +22,14 @@ import controllers.VatRepaymentApiController
 import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
 import controllers.definition.ApiDocumentationController
 import services.{ResourceService, ValidationService}
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 
 class ApiModule extends AbstractModule {
 
   lazy val connectorBindings: Unit = {
     bind(classOf[ComplianceDocumentsConnector]).asEagerSingleton()
+    bind(classOf[AuthConnector]).to(classOf[DefaultAuthConnector]).asEagerSingleton()
   }
 
   lazy val controllerBindings: Unit = {
