@@ -18,158 +18,151 @@ package scala.controllers
 
 import java.util.UUID
 
-import akka.stream.Materializer
 import connectors.ComplianceDocumentsConnector
-import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
-import controllers.routes
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
+import controllers.actions.{AuthenticateApplicationAction, RequestWithCorrelationId, ValidateCorrelationIdHeaderAction}
+import controllers.{VatRepaymentApiController, routes}
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.{Matchers, WordSpec}
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.http.Status
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
-import play.api.mvc.Request
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{BodyParsers, ControllerComponents, Request, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.HttpResponse
+import services.ValidationService
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.exampleData.VatDocumentExample._
 
-class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoSugar with ArgumentMatchersSugar with GuiceOneAppPerSuite {
+class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockFactory {
+  implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = None)
 
-  val mockAuthApp: AuthenticateApplicationAction = mock[AuthenticateApplicationAction]
+  class Setup(validationErrors: Option[JsValue] = None, serverError: Boolean = false,
+              validBody: Option[JsValue]) {
+    val requestBody: JsValue = validBody.getOrElse(Json.obj())
+    val correlationId: String = UUID.randomUUID().toString
+    implicit val ee: ExecutionContext = stubControllerComponents().executionContext
+    val mockAuthApp: AuthenticateApplicationAction = mock[AuthenticateApplicationAction]
+    val mockValidation: ValidationService = mock[ValidationService]
+    val connector: ComplianceDocumentsConnector = mock[ComplianceDocumentsConnector]
+    val mockCc: ControllerComponents = stubControllerComponents()
 
-  when(mockAuthApp.andThen[Request](any)).thenAnswer(
-    (invocation: InvocationOnMock) => invocation.getArguments()(0).asInstanceOf[ValidateCorrelationIdHeaderAction]
-  )
+    object StubbedCorrelationIdAction extends ValidateCorrelationIdHeaderAction(
+      new BodyParsers.Default(stubControllerComponents().parsers)
+    )(
+      stubControllerComponents().executionContext
+    ) {
+      override def invokeBlock[A](request: Request[A], block: RequestWithCorrelationId[A] => Future[Result]): Future[Result] = {
+        block(RequestWithCorrelationId(request, correlationId))
+      }
+    }
 
-  private val connector: ComplianceDocumentsConnector = mock[ComplianceDocumentsConnector]
-  override lazy val app: Application = {
-    import play.api.inject._
+    (mockAuthApp.andThen[Request] _).expects(*).returns {
+      StubbedCorrelationIdAction
+    }
 
-    new GuiceApplicationBuilder()
-      .overrides(
-        bind[ComplianceDocumentsConnector].toInstance(connector),
-        bind[AuthenticateApplicationAction].toInstance(mockAuthApp)
-      ).build()
+
+    val testController: VatRepaymentApiController = new VatRepaymentApiController(mockValidation, connector, StubbedCorrelationIdAction, mockAuthApp, mockCc)
+    val documentId: String = "532493"
+    val connectorResponse: Option[HttpResponse] = if (serverError) {
+      Option.empty[HttpResponse]
+    } else {
+      Some(HttpResponse(ACCEPTED, None,
+        Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
+      )
+    }
+    if (validBody.isDefined) {
+      (connector.vatRepayment(_: JsValue, _: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
+        .expects(validBody.get, correlationId, documentId, *, *)
+        .returns(
+          Future.successful(
+            connectorResponse
+          )
+        )
+    }
+    (mockValidation.validate(_: JsValue, _: String)).expects(*, *).returns(validationErrors)
+
   }
 
-  implicit lazy val materializer: Materializer = app.materializer
 
-  val correlationId: String = UUID.randomUUID().toString
-  val documentId: String = "532493"
   "The Vat Repayment Api Controller" when {
     "calling the getResponse route" should {
-      "return Accepted if given a valid Json body - EF" in {
+      "return Accepted if given a valid Json validBody" in new Setup(validBody = Some(Json.parse(getExample("ef")))) {
 
-        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId))(any, any))
-          .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("ef"))),
-            Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
-          )))
 
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withHeaders("CorrelationId" -> correlationId)
-          .withJsonBody(Json.parse(getExample("ef")))).map { result =>
-          status(result) shouldBe Status.ACCEPTED
-          contentAsString(result) shouldBe ""
-        }
+        val result: Future[Result] = testController.postRepaymentData(documentId)
+          .apply(
+            FakeRequest(
+              POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url
+            )
+              .withHeaders("CorrelationId" -> correlationId)
+              .withJsonBody(requestBody)
+          )
+        status(result) shouldBe 202
+        contentAsString(result) shouldBe ""
 
-      }
-      "return Accepted if given a valid Json body - nReg" in {
-
-        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId))(any, any))
-          .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("nReg"))),
-            Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
-          )))
-
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withHeaders("CorrelationId" -> correlationId)
-          .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
-          status(result) shouldBe Status.ACCEPTED
-          contentAsString(result) shouldBe ""
-        }
 
       }
-      "return Accepted if given a valid Json body - pReg" in {
-
-        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId))(any, any))
-          .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("pReg"))),
-            Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
-          )))
-
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withHeaders("CorrelationId" -> correlationId)
-          .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
-          status(result) shouldBe Status.ACCEPTED
-          contentAsString(result) shouldBe ""
-        }
-
-      }
-      "return BadRequest if not given a Json body" in {
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withHeaders("CorrelationId" -> correlationId)
-          .withBody("This is not Json!")).map { result =>
-          status(result) shouldBe Status.BAD_REQUEST
-          contentAsJson(result) shouldBe Json.parse(
-            """
+      "return BadRequest if not given a validBody" in new Setup(
+        Some(Json.parse(
+          """
 {"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentBinary"},{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentMetadata"}]}
 """.stripMargin
+        )), validBody = None
+      ) {
+        val result = testController.postRepaymentData(documentId)(
+          FakeRequest(
+            POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url
           )
-        }
+            .withHeaders("CorrelationId" -> correlationId)
+        )
+        status(result) shouldBe 400
+        contentAsJson(result) shouldBe Json.parse(
+          """
+{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentBinary"},{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentMetadata"}]}
+""".stripMargin
+        )
+
       }
-      "return BadRequest if given an invalid Json body with an unexpected field present" in {
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withHeaders("CorrelationId" -> correlationId)
-          .withBody(Json.parse(getExample("invalidAddedField")))).map { result =>
-          status(result) shouldBe Status.BAD_REQUEST
-          contentAsJson(result) shouldBe Json.parse(
-            """
+      "return BadRequest if given an invalid Json validBody" in new Setup(
+        Some(Json.parse(
+          """
 {"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"UNEXPECTED_FIELD","message":"Unexpected field found","path":"/documentMetadata/wrong"}]}
-              |""".stripMargin
-          )
-        }
-      }
-      "return BadRequest if given an invalid correlationId" in {
+            |""".stripMargin
+        )), validBody = None
+      ) {
+        val result: Future[Result] = testController.postRepaymentData(documentId)
+          .apply(
+            FakeRequest(
+              POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url
+            )
+              .withHeaders("CorrelationId" -> correlationId)
+              .withJsonBody(Json.parse(getExample("invalidAddedField"))
+              ))
+        status(result) shouldBe 400
+        contentAsJson(result) shouldBe Json.parse(
+          """
+{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"UNEXPECTED_FIELD","message":"Unexpected field found","path":"/documentMetadata/wrong"}]}
+            |""".stripMargin
+        )
 
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withHeaders("CorrelationId" -> "@£$*&")
-          .withJsonBody(Json.parse(getExample("nReg")))).map { result =>
-          status(result) shouldBe Status.BAD_REQUEST
-          contentAsJson(result) shouldBe Json.parse(
-            """
-              |{"code":"INVALID_CORRELATION_ID","message":"Submission has not passed validation. Invalid header CorrelationId."}
-              |""".stripMargin
-          )
-        }
-      }
-      "return BadRequest if not given a correlationId" in {
-
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withJsonBody(Json.parse(getExample("pReg")))).map { result =>
-          status(result) shouldBe Status.BAD_REQUEST
-          contentAsJson(result) shouldBe Json.parse(
-            """{"code":"MISSING_CORRELATION_ID","message":"Submission has not passed validation. Missing header CorrelationId."}
-              |""".stripMargin
-          )
-        }
       }
 
-      "return InternalServerError if the connector is unsuccessful in communicating with IF" in {
-        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId))(any, any))
-          .thenReturn(Future.successful(None))
+      "return InternalServerError if the connector is unsuccessful in communicating with IF" in new Setup(serverError = true,
+        validBody = Some(Json.parse(getExample("nReg")))) {
+        val result = testController.postRepaymentData(documentId)
+          .apply(
+            FakeRequest(
+              POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url
+            )
+              .withHeaders("CorrelationId" -> correlationId)
+              .withJsonBody(requestBody)
+              )
+        status(result) shouldBe 500
+        contentAsJson(result) shouldBe Json.obj(
+          "code" -> "INTERNAL_SERVER_ERROR",
+          "message" -> "Internal server error"
+        )
 
-        route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)
-          .withHeaders("CorrelationId" -> correlationId)
-          .withJsonBody(Json.parse(getExample("ef")))).map { result =>
-          status(result) shouldBe Status.INTERNAL_SERVER_ERROR
-          contentAsJson(result) shouldBe Json.obj(
-            "code" -> "INTERNAL_SERVER_ERROR",
-            "message" -> "Internal server error"
-          )
-        }
 
       }
     }
