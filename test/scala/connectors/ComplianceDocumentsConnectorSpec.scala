@@ -40,7 +40,7 @@ class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
 
   val correlationId: String = "some-correlation-id"
   val authId: String = "Bearer some-token"
-  val documentId: Long = 4321L
+  val documentId: String = "4321"
 
   "The Compliance Documents connector" should {
     "return a 202 when given Json" in {

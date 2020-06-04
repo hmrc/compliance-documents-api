@@ -65,7 +65,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
     "calling the getResponse route" should {
       "return Accepted if given a valid Json body - EF" in {
 
-        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
+        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId))(any, any))
           .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("ef"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
@@ -80,7 +80,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
       "return Accepted if given a valid Json body - nReg" in {
 
-        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
+        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId))(any, any))
           .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("nReg"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
@@ -95,7 +95,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
       "return Accepted if given a valid Json body - pReg" in {
 
-        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
+        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId))(any, any))
           .thenReturn(Future.successful(Some(HttpResponse(ACCEPTED, Some(Json.parse(getExample("pReg"))),
             Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
           )))
@@ -158,7 +158,7 @@ class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockitoS
       }
 
       "return InternalServerError if the connector is unsuccessful in communicating with IF" in {
-        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId.toLong))(any, any))
+        when(connector.vatRepayment(any, eqTo(correlationId), eqTo(documentId))(any, any))
           .thenReturn(Future.successful(None))
 
         route(app, FakeRequest(POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url)

@@ -53,7 +53,7 @@ class VatRepaymentApiController @Inject()(
       case None =>
         logger.info(logProcess("VatRepaymentApiController", "postRepaymentData: Right",
           s"Request received - passing on to IF", Some(request.correlationId), Some(input)))
-        complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId.toLong).map {
+        complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId).map {
           el =>
             el.map(response => responseMapper(response)) getOrElse InternalServerError(Json.toJson(ErrorInternalServerError))
         }
