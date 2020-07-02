@@ -17,7 +17,8 @@
 package controllers.actions
 
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.MDC
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
@@ -35,7 +36,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthenticateApplicationActionSpec extends WordSpec with Matchers with MockFactory {
+class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with MockFactory {
 
   class Setup {
     implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))

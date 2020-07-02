@@ -22,7 +22,8 @@ import connectors.ComplianceDocumentsConnector
 import controllers.actions.{AuthenticateApplicationAction, RequestWithCorrelationId, ValidateCorrelationIdHeaderAction}
 import controllers.{VatRepaymentApiController, routes}
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{BodyParsers, ControllerComponents, Request, Result}
 import play.api.test.FakeRequest
@@ -33,7 +34,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.exampleData.VatDocumentExample._
 
-class VatRepaymentApiControllerSpec extends WordSpec with Matchers with MockFactory {
+class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockFactory {
   implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = None)
 
   class Setup(validationErrors: Option[JsValue] = None, serverError: Boolean = false,

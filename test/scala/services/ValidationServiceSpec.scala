@@ -18,14 +18,15 @@ package scala.services
 
 import models.responses.{BadRequestErrorResponse, InvalidField}
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import services.{ResourceService, ValidationService}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.exampleData.VatDocumentExample._
 
-class ValidationServiceSpec extends WordSpec with Matchers with MockFactory {
+class ValidationServiceSpec extends AnyWordSpec with Matchers with MockFactory {
 
   implicit lazy val hc: HeaderCarrier = HeaderCarrier(sessionId = None)
 

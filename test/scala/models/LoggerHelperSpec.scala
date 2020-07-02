@@ -16,10 +16,11 @@
 
 package scala.models
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import utils.LoggerHelper
 
-class LoggerHelperSpec extends WordSpec with Matchers {
+class LoggerHelperSpec extends AnyWordSpec with Matchers {
   "The Logger Helper" when {
     "logging a process" should {
       "return a correct format without correlation id" in {

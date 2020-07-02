@@ -36,6 +36,10 @@ object LoggerHelper {
   }
 
   def getSize(document: Option[JsValue]): Option[String] = {
-    document.flatMap(doc => (doc \ "documentBinary").asOpt[String].map(_.length.toString))
+    document.flatMap(doc => (doc \ "documentBinary").asOpt[String]
+      .map{
+        document => document.length.toString
+      }
+    )
   }
 }

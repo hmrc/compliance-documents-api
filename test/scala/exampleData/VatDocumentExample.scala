@@ -94,7 +94,7 @@ object VatDocumentExample {
        |  ${
       if (!isMissingDocBinary) {
         """
-        "documentBinary": "0123456789ABCDEF",
+        "documentBinary": "9743yfshibfkjnjkjklfdjbgsuog==",
        |""".stripMargin
       } else {
         ""
@@ -105,7 +105,7 @@ object VatDocumentExample {
        |    },
        |    "docType": "VoHl",
        |    "docDate": "2000-02-29",
-       |    "docBinaryHash": "400e406e13d5835aedfa61bff05299a9",
+       |    "docBinaryHash": "c186S8wUObpPHoQ6Y/0s+g==",
        |    "docBinaryRef": "qVX29XN0iireH",
        |    ${
       if (isValidAllocateToUser) {
@@ -143,7 +143,7 @@ object VatDocumentExample {
   def invalidWithEmptySpace(classIndex: String) = {
     s"""
        |{
-       |  "documentBinary": "0123456789ABCDEF",
+       |  "documentBinary": "9743yfshibfkjnjkjklfdjbgsuog==",
        |  "documentMetadata": {
        |    "classIndex": {
        |      $classIndex
@@ -188,7 +188,7 @@ object VatDocumentExample {
     """
       |{
       |  "$schema": "http://json-schema.org/draft-07/schema#",
-      |  "title": "IF API#1562 Store Document request schema v1.3.0",
+      |  "title": "IF API#1562 Store Document request schema v1.5.0",
       |  "type": "object",
       |  "additionalProperties": false,
       |  "required": [
@@ -197,10 +197,10 @@ object VatDocumentExample {
       |  ],
       |  "properties": {
       |    "documentBinary": {
-      |      "description": "The actual Base64 encoded document, maximum size ~10MB",
+      |      "description": "The actual Base64 encoded document, maximum size ~10MB. This MUST be a valid base64 string.",
       |      "type": "string",
       |      "format": "binary",
-      |      "maxLength": 14680064
+      |      "pattern": "^[A-Za-z0-9+/]{2,14680064}={0,2}?$"
       |    },
       |    "documentMetadata": {
       |      "$ref": "#/definitions/documentMetadata"
@@ -283,8 +283,9 @@ object VatDocumentExample {
       |          "minimum": 1
       |        },
       |        "docBinaryHash": {
-      |          "description": "Mandatory. An MD5 hash checksum of the file used to ensure integrity.",
-      |          "type": "string"
+      |          "description": "Mandatory. A 24 character base64 encoded MD5 hash checksum of the file used to ensure integrity. This MUST be a valid base64 string.",
+      |          "type": "string",
+      |          "pattern": "^[A-Za-z0-9+/]{22}={2}$"
       |        },
       |        "docBinaryRef": {
       |          "description": "Mandatory. A Windows filename for the document. Can be a string representation of the 'documentId' URI path parameter.",
@@ -573,7 +574,7 @@ object VatDocumentExample {
       |            "description": "An explanation about the purpose of this instance.",
       |            "default": "",
       |            "examples": [
-      |                "0123456789ABCDEF"
+      |                "9743yfshibfkjnjkjklfdjbgsuog=="
       |            ]
       |        },
       |        "documentMetadata": {
@@ -652,7 +653,7 @@ object VatDocumentExample {
   val fitsInvalidSchema: String =
     """
       |{
-      |  "documentBinary": "0123456789ABCDEF",
+      |  "documentBinary": "9743yfshibfkjnjkjklfdjbgsuog==",
       |  "documentMetadata": {
       |    "classIndex": {
       |      "ef": {

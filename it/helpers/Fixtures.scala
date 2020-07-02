@@ -10,7 +10,7 @@ trait Fixtures {
 
   val createRepaymentDocumentJson: JsValue =
     Json.parse("""{
-                 |  "documentBinary": "0123456789ABCDEF",
+                 |  "documentBinary": "9743yfshibfkjnjkjklfdjbgsuog==",
                  |  "documentMetadata": {
                  |    "classIndex": {
                  |      "ef": {
@@ -22,7 +22,7 @@ trait Fixtures {
                  |    },
                  |    "docType": "VoHl",
                  |    "docDate": "2000-02-29",
-                 |    "docBinaryHash": "abcdef01234567890",
+                 |    "docBinaryHash": "c186S8wUObpPHoQ6Y/0s+g==",
                  |    "docBinaryRef": "qVX29XN0iireH",
                  |    "docBinaryType": "doc",
                  |    "creatingUser": "YIfD",
