@@ -1,4 +1,6 @@
 import play.core.PlayVersion.current
+import sbt.IntegrationTest
+import sbt.Tests.{Group, SubProcess}
 import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.SbtArtifactory
@@ -10,6 +12,7 @@ val silencerVersion = "1.7.0"
 majorVersion := 0
 scalaVersion := "2.12.11"
 
+
 lazy val microservice = Project(appName, file("."))
   .configs(IntegrationTest)
   .disablePlugins(JUnitXmlReportPlugin)
@@ -17,17 +20,22 @@ lazy val microservice = Project(appName, file("."))
 
 
 libraryDependencies ++= Seq(
-  "uk.gov.hmrc" %% "bootstrap-play-26" % "1.8.0",
-  "org.scalatest" %% "scalatest" % "3.0.8" % "test",
+  "uk.gov.hmrc" %% "bootstrap-play-26" % "1.11.0",
   "uk.gov.hmrc" %% "play-hmrc-api" % "4.1.0-play-26",
-  "org.scalamock" %% "scalamock" % "4.4.0" % "test",
-  "com.typesafe.play" %% "play-test" % current % "test",
-  "org.pegdown" % "pegdown" % "1.6.0" % "test, it",
   "com.github.java-json-tools"  % "json-schema-validator"     % "2.2.14",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3" % "test, it",
-  "com.github.tomakehurst" % "wiremock-standalone" % "2.26.3" % "test, it",
   compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
   "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
+)
+
+lazy val testScope = "test, it"
+libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "3.2.0" % testScope,
+  "org.scalamock" %% "scalamock" % "4.4.0" % testScope,
+  "com.typesafe.play" %% "play-test" % current % testScope,
+  "com.vladsch.flexmark" % "flexmark-all" % "0.36.8" % testScope,
+  "org.pegdown" % "pegdown" % "1.6.0" % testScope,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3" % testScope,
+  "com.github.tomakehurst" % "wiremock-standalone" % "2.26.3" % testScope
 )
 
 ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;"
@@ -40,6 +48,17 @@ resolvers += Resolver.jcenterRepo
 integrationTestSettings
 coverageEnabled in(Test, compile) := true
 
+javaOptions ++= Seq(
+  "-Dnashorn.regexp.impl=jdk"
+)
+
+testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value)
+
+def oneForkedJvmPerTest(tests: Seq[TestDefinition]): Seq[Group] = tests map { test =>
+  Group(test.name, Seq(test), SubProcess(
+    ForkOptions().withRunJVMOptions(Vector("-Dtest.name=" + test.name, "-Dnashorn.regexp.impl=jdk"))
+  ))
+}
 enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
 scalacOptions ++= Seq(
   "-P:silencer:pathFilters=views;routes"

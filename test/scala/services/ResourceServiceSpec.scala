@@ -17,12 +17,13 @@
 package scala.services
 
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.{MustMatchers, WordSpec}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.Environment
 import services.ResourceService
 import uk.gov.hmrc.http.HeaderCarrier
 
-class ResourceServiceSpec extends WordSpec with MustMatchers
+class ResourceServiceSpec extends AnyWordSpec with Matchers
   with ScalaFutures with IntegrationPatience {
 
   private val env = Environment.simple()

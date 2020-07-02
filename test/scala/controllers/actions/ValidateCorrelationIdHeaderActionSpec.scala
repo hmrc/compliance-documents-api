@@ -19,7 +19,8 @@ package scala.controllers.actions
 import java.util.UUID
 
 import controllers.actions.ValidateCorrelationIdHeaderAction
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.mvc.{BodyParsers, Result}
@@ -29,7 +30,7 @@ import play.api.test.Helpers.{contentAsJson, status, stubControllerComponents}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ValidateCorrelationIdHeaderActionSpec extends WordSpec with Matchers {
+class ValidateCorrelationIdHeaderActionSpec extends AnyWordSpec with Matchers {
 
   class Setup {
     val mockBodyParser: BodyParsers.Default = new BodyParsers.Default(stubControllerComponents().parsers)

@@ -1,11 +1,12 @@
 package api
 
 import helpers.{Fixtures, WireMockSpec}
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 
-class VatRepaymentISpec extends PlaySpec with WireMockSpec with Fixtures {
+class VatRepaymentISpec extends AnyWordSpec with Matchers with WireMockSpec with Fixtures {
   "POST /vat-repayment-info/(id)" should {
     s"return an $ACCEPTED if $ACCEPTED received from IF" in {
       stubPostWithoutResponseBody("/organisations/document/4321", ACCEPTED, correlationId)
