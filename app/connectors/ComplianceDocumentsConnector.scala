@@ -43,18 +43,18 @@ class ComplianceDocumentsConnector @Inject()(
   lazy val vatRepaymentUri: String = config.get[String]("integration-framework.endpoints.vat-repayment-info")
 
 
-  private def headers(correlationId: String) = Seq(
+  private def headers(correlationId: String) = HeaderCarrier().withExtraHeaders(
     HeaderNames.CONTENT_TYPE -> ContentTypes.JSON,
     "CorrelationId" -> correlationId,
-    "Environment" -> iFEnvironment
+    "Environment" -> iFEnvironment,
+    "Authorization" -> s"Bearer $bearerToken"
   )
 
   def vatRepayment(request: JsValue, correlationId: String, documentId: String)
                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[HttpResponse]] = {
-    httpClient.POST[JsValue, Option[HttpResponse]](s"$ifBaseUrl$vatRepaymentUri/$documentId", request, headers(correlationId))(
-      implicitly, httpReads(correlationId), hc.copy(authorization = Some(Authorization(s"Bearer $bearerToken"))), ec
-    )
-      .recover {
+    httpClient.POST[JsValue, Option[HttpResponse]](s"$ifBaseUrl$vatRepaymentUri/$documentId", request)(
+      implicitly, httpReads(correlationId), headers(correlationId), ec
+    ).recover {
         case e: Exception =>
           logger.error(LoggerHelper.logProcess("ComplianceDocumentsConnector", "vatRepayment",
             s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} " +
