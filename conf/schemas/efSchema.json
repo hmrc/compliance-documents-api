@@ -19,14 +19,12 @@
         "dTRN": {
           "description": "Mandatory. The trader’s registration number including VAT number and suffix",
           "type": "string",
-          "pattern": "^[0-9]{13}$",
-          "example": "4563845950000"
+          "pattern": "^[0-9]{13}$"
         },
         "locationCode": {
           "description": "Optional. Trader location code; it must be padded with leading zeros if less than 100, for example '081'",
           "type": "string",
-          "pattern": "^[0-9]{3}$",
-          "example": "250"
+          "pattern": "^[0-9]{3}$"
         },
         "category": {
           "description": "Optional. A valid category defined on the backend",

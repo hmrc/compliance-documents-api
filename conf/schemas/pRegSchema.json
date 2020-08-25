@@ -41,8 +41,7 @@
         "locationCode": {
           "description": "Optional. Trader location code; it must be padded with leading zeros if less than 100, for example '081'",
           "type": "string",
-          "pattern": "^[0-9]{3}$",
-          "example": "250"
+          "pattern": "^[0-9]{3}$"
         }
       }
     }
