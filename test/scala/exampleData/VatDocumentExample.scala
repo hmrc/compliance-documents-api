@@ -188,7 +188,7 @@ object VatDocumentExample {
     """
       |{
       |  "$schema": "http://json-schema.org/draft-07/schema#",
-      |  "title": "IF API#1562 Store Document request schema v1.5.0",
+      |  "title": "IF API#1562 Store Document request schema v1.6.0",
       |  "type": "object",
       |  "additionalProperties": false,
       |  "required": [
@@ -264,8 +264,7 @@ object VatDocumentExample {
       |        "docType": {
       |          "description": "Mandatory. A valid document type between 2 and 4 characters",
       |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9]{2,4}$",
-      |          "example": "UCRE"
+      |          "pattern": "^[A-Za-z0-9]{2,4}$"
       |        },
       |        "docDate": {
       |          "description": "Mandatory. Date format CCYY-MM-DD",
@@ -305,20 +304,17 @@ object VatDocumentExample {
       |            "mht",
       |            "tif",
       |            "xml"
-      |          ],
-      |          "example": "pdf"
+      |          ]
       |        },
       |        "allocateToUser": {
       |          "description": "User ID of the user or team to whom this document must be allocated for action. Use ‘*AUTO*’ to indicate that the document should be allocated based on automatic routing rules.",
       |          "type": "string",
-      |          "pattern": "^(([A-Za-z0-9]{4,8})|(\\*AUTO\\*))$",
-      |          "example": "*AUTO*"
+      |          "pattern": "^(([A-Za-z0-9]{4,8})|(\\*AUTO\\*))$"
       |        },
       |        "creatingUser": {
       |          "description": "A valid ICLipse user id",
       |          "type": "string",
-      |          "pattern": "^[A-Za-z0-9 &'*+,./:;?{|}\\(\\)\\-\\[\\]]{4,8}$",
-      |          "example": "PROTCONN"
+      |          "pattern": "^[A-Za-z0-9 &'*+,./:;?{|}\\(\\)\\-\\[\\]]{4,8}$"
       |        }
       |      }
       |    },
@@ -343,8 +339,7 @@ object VatDocumentExample {
       |    "locationCodeType": {
       |      "description": "Optional. Trader location code; it must be padded with leading zeros if less than 100, for example '081'",
       |      "type": "string",
-      |      "pattern": "^[0-9]{3}$",
-      |      "example": "250"
+      |      "pattern": "^[0-9]{3}$"
       |    },
       |    "enquiryReferenceType": {
       |      "description": "Optional. Used for storing the reference of a contact centre enquiry",
@@ -422,14 +417,12 @@ object VatDocumentExample {
       |        "dTRN": {
       |          "description": "Mandatory. The trader’s registration number including VAT number and suffix",
       |          "type": "string",
-      |          "pattern": "^[0-9]{13}$",
-      |          "example": "4563845950000"
+      |          "pattern": "^[0-9]{13}$"
       |        },
       |        "locationCode": {
       |          "description": "Optional. Trader location code; it must be padded with leading zeros if less than 100, for example '081'",
       |          "type": "string",
-      |          "pattern": "^[0-9]{3}$",
-      |          "example": "250"
+      |          "pattern": "^[0-9]{3}$"
       |        },
       |        "category": {
       |          "description": "Optional. A valid category defined on the backend",
@@ -496,8 +489,7 @@ object VatDocumentExample {
       |        "locationCode": {
       |          "description": "Optional. Trader location code; it must be padded with leading zeros if less than 100, for example '081'",
       |          "type": "string",
-      |          "pattern": "^[0-9]{3}$",
-      |          "example": "250"
+      |          "pattern": "^[0-9]{3}$"
       |        }
       |      }
       |    }
@@ -572,10 +564,7 @@ object VatDocumentExample {
       |            "type": "string",
       |            "title": "The Documentbinary Schema",
       |            "description": "An explanation about the purpose of this instance.",
-      |            "default": "",
-      |            "examples": [
-      |                "9743yfshibfkjnjkjklfdjbgsuog=="
-      |            ]
+      |            "default": ""
       |        },
       |        "documentMetadata": {
       |            "$id": "#/properties/documentMetadata",
@@ -583,15 +572,6 @@ object VatDocumentExample {
       |            "title": "The Documentmetadata Schema",
       |            "description": "An explanation about the purpose of this instance.",
       |            "default": {},
-      |            "examples": [
-      |                {
-      |                    "classIndex": {
-      |                        "ef": {
-      |                            "dTRN": "9443402451823"
-      |                        }
-      |                    }
-      |                }
-      |            ],
       |            "additionalProperties": true,
       |            "required": [
       |                "classIndex"
@@ -603,13 +583,6 @@ object VatDocumentExample {
       |                    "title": "The Classindex Schema",
       |                    "description": "An explanation about the purpose of this instance.",
       |                    "default": {},
-      |                    "examples": [
-      |                        {
-      |                            "ef": {
-      |                                "dTRN": "9443402451823"
-      |                            }
-      |                        }
-      |                    ],
       |                    "additionalProperties": true,
       |                    "required": [
       |                        "ef"
@@ -621,11 +594,6 @@ object VatDocumentExample {
       |                            "title": "The Ef Schema",
       |                            "description": "An explanation about the purpose of this instance.",
       |                            "default": {},
-      |                            "examples": [
-      |                                {
-      |                                    "dTRN": "9443402451823"
-      |                                }
-      |                            ],
       |                            "additionalProperties": true,
       |                            "required": [
       |                                "dTRN"
@@ -636,10 +604,7 @@ object VatDocumentExample {
       |                                    "type": "string",
       |                                    "title": "The Dtrn Schema",
       |                                    "description": "An explanation about the purpose of this instance.",
-      |                                    "default": "",
-      |                                    "examples": [
-      |                                        "9443402451823"
-      |                                    ]
+      |                                    "default": ""
       |                                }
       |                            }
       |                        }
