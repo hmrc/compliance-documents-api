@@ -12,8 +12,14 @@ The chosen provider is SAS Software Inc and the service will be provided as a Pa
 In the Protect Connect project, the property values required are:
   - In the URI, the dynamic path parameter `{document-id}` must be a numeric string starting at 810000000
   - Only the object `ef` within the `classIndex` must be supplied; do not use the alternative objects `nReg` and `pReg`
-  - The property `doctype` must be set to `UCRE`
+  - The property `docType` must be set to `UCRE`
   - The property `docBinaryRef` must be the same as the `{document-id}` URI path parameter
   - Only `docBinaryType` values `pdf` and `html` are to be used
   - The property `creatingUser` must be set to `PROTCONN`
   - The property `locationCode` must be set to `250`
+  - The property `allocateToUser` must be left blank
+  - Within the object `ef`
+     - the property `category` must be left blank
+     - the property `enquiryReference` must be left blank
+     - the property `caseReference` must be left blank
+   
