@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package controllers
 
 import connectors.ComplianceDocumentsConnector
 import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
+import models.responses.ErrorInternalServerError
+
 import javax.inject._
 import play.api.Logger
 import play.api.http.ContentTypes
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ValidationService
-import uk.gov.hmrc.api.controllers.ErrorInternalServerError
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.LoggerHelper
@@ -33,12 +34,12 @@ import utils.LoggerHelper._
 import scala.concurrent.{ExecutionContext, Future}
 
 class VatRepaymentApiController @Inject()(
-                                           validator: ValidationService,
-                                           complianceDocumentsConnector: ComplianceDocumentsConnector,
-                                           getCorrelationId: ValidateCorrelationIdHeaderAction,
-                                           authenticateApplication: AuthenticateApplicationAction,
-                                           cc: ControllerComponents
-                                         )(implicit ec: ExecutionContext) extends BackendController(cc) {
+  validator: ValidationService,
+  complianceDocumentsConnector: ComplianceDocumentsConnector,
+  getCorrelationId: ValidateCorrelationIdHeaderAction,
+  authenticateApplication: AuthenticateApplicationAction,
+  cc: ControllerComponents
+)(implicit ec: ExecutionContext) extends BackendController(cc) {
   private val logger: Logger = Logger(this.getClass)
 
   def postRepaymentData(documentId: String): Action[AnyContent] = (authenticateApplication andThen getCorrelationId).async { implicit request =>

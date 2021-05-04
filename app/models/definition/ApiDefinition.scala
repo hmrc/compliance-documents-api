@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package models.definition
 
 import play.api.libs.json.{JsArray, JsValue, Json, Writes}
 
-case class ApiDefinition(whiteListedApplicationIds: Seq[String], endpointsEnabled: Boolean, status: String){
+case class ApiDefinition(allowListedApplicationIds: Seq[String], endpointsEnabled: Boolean, status: String){
   val scopes: JsArray = Json.arr(
     Json.obj(
       "key" -> "write:protect-connect",
@@ -39,7 +39,7 @@ case class ApiDefinition(whiteListedApplicationIds: Seq[String], endpointsEnable
         "endpointsEnabled" -> endpointsEnabled,
         "access" -> Json.obj(
           "type" -> "PRIVATE",
-          "whitelistedApplicationIds" -> whiteListedApplicationIds
+          "allowListedApplicationIds" -> allowListedApplicationIds
         )
       )
     )
