@@ -20,8 +20,7 @@ lazy val microservice = Project(appName, file("."))
 
 
 libraryDependencies ++= Seq(
-  "uk.gov.hmrc" %% "bootstrap-play-26" % "1.11.0",
-  "uk.gov.hmrc" %% "play-hmrc-api" % "4.1.0-play-26",
+  "uk.gov.hmrc" %% "bootstrap-play-26" % "4.0.0",
   "com.github.java-json-tools"  % "json-schema-validator"     % "2.2.14",
   compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
   "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full

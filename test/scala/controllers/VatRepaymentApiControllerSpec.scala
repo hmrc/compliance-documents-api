@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,8 +72,8 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
       )
     }
     if (validBody.isDefined) {
-      (connector.vatRepayment(_: JsValue, _: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(validBody.get, correlationId, documentId, *, *)
+      (connector.vatRepayment(_: JsValue, _: String, _: String)(_: ExecutionContext))
+        .expects(validBody.get, correlationId, documentId, *)
         .returns(
           Future.successful(
             connectorResponse

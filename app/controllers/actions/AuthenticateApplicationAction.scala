@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package controllers.actions
 
+import models.responses.{ErrorInternalServerError, ErrorUnauthorized}
+
 import javax.inject.Inject
 import org.slf4j.MDC
 import play.api.libs.json.Json
 import play.api.mvc.Results.{InternalServerError, Unauthorized}
 import play.api.mvc._
 import play.api.{Configuration, Logger}
-import uk.gov.hmrc.api.controllers.{ErrorInternalServerError, ErrorUnauthorized}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProvider, AuthProviders, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
@@ -33,12 +34,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 class AuthenticateApplicationAction @Inject()(
-                                               val authConnector: AuthConnector,
-                                               config: Configuration,
-                                               val parser: BodyParsers.Default
-                                             )(implicit val executionContext: ExecutionContext) extends
+  val authConnector: AuthConnector,
+  config: Configuration,
+  val parser: BodyParsers.Default
+)(implicit val executionContext: ExecutionContext) extends
   AuthorisedFunctions with ActionBuilder[Request, AnyContent] {
-  lazy val applicationIdIsAllowed: Set[String] = config.get[Option[Seq[String]]]("apiDefinition.whitelistedApplicationIds")
+  lazy val applicationIdIsAllowed: Set[String] = config.get[Option[Seq[String]]]("apiDefinition.allowListedApplicationIds")
     .getOrElse(Seq.empty[String])
     .toSet
   val logger: Logger = Logger.apply(this.getClass.getSimpleName)

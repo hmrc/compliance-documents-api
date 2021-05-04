@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import javax.inject._
 import play.api.http.{ContentTypes, HeaderNames}
 import play.api.libs.json.JsValue
 import play.api.{Configuration, Logger}
-import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.LoggerHelper
@@ -29,9 +28,9 @@ import utils.LoggerHelper
 import scala.concurrent.{ExecutionContext, Future}
 
 class ComplianceDocumentsConnector @Inject()(
-                                              httpClient: HttpClient,
-                                              config: Configuration
-                                            ) extends ComplianceDocumentsConnectorParser {
+  httpClient: HttpClient,
+  config: Configuration
+) extends ComplianceDocumentsConnectorParser {
 
 
   override val className: String = this.getClass.getSimpleName
@@ -51,7 +50,7 @@ class ComplianceDocumentsConnector @Inject()(
   )
 
   def vatRepayment(request: JsValue, correlationId: String, documentId: String)
-                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[HttpResponse]] = {
+                  (implicit ec: ExecutionContext): Future[Option[HttpResponse]] = {
     httpClient.POST[JsValue, Option[HttpResponse]](s"$ifBaseUrl$vatRepaymentUri/$documentId", request)(
       implicitly, httpReads(correlationId), headers(correlationId), ec
     ).recover {

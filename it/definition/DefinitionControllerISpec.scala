@@ -39,7 +39,7 @@ class DefinitionControllerISpec extends AnyWordSpec with Matchers with GuiceOneS
            |        "endpointsEnabled": false,
            |        "access" : {
            |          "type": "PRIVATE",
-           |          "whitelistedApplicationIds": ["ID-1"]
+           |          "allowListedApplicationIds": ["ID-1"]
            |        }
            |      }
            |    ]
