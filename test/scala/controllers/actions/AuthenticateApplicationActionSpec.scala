@@ -31,8 +31,7 @@ import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, BearerTokenExpired}
-import uk.gov.hmrc.http.logging.{RequestId, SessionId}
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, RequestId, SessionId}
 
 import scala.concurrent.{ExecutionContext, Future}
 

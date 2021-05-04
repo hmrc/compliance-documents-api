@@ -72,8 +72,8 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
       )
     }
     if (validBody.isDefined) {
-      (connector.vatRepayment(_: JsValue, _: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
-        .expects(validBody.get, correlationId, documentId, *, *)
+      (connector.vatRepayment(_: JsValue, _: String, _: String)(_: ExecutionContext))
+        .expects(validBody.get, correlationId, documentId, *)
         .returns(
           Future.successful(
             connectorResponse
