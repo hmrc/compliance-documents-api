@@ -57,7 +57,7 @@ class AuthenticateApplicationAction @Inject()(
     authorised(AuthProviders(AuthProvider.StandardApplication)).retrieve(Retrievals.applicationId) {
       case Some(_) =>
         block(request)
-      case _ =>
+      case None =>
         logger.warn(
           logProcess("AuthenticateApplicationAction", "invokeBlock", "no application id or application id not in request")
         )
