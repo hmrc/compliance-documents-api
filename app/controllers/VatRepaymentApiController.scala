@@ -67,9 +67,7 @@ class VatRepaymentApiController @Inject()(
   }
 
   private def responseMapper(response: HttpResponse): Result = {
-    Status(response.status)
-
-      .as(ContentTypes.JSON)
+    Status(response.status).as(ContentTypes.JSON)
   }
 
 

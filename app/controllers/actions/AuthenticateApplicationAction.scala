@@ -39,9 +39,6 @@ class AuthenticateApplicationAction @Inject()(
   val parser: BodyParsers.Default
 )(implicit val executionContext: ExecutionContext) extends
   AuthorisedFunctions with ActionBuilder[Request, AnyContent] {
-  lazy val applicationIdIsAllowed: Set[String] = config.get[Option[Seq[String]]]("apiDefinition.allowListedApplicationIds")
-    .getOrElse(Seq.empty[String])
-    .toSet
   val logger: Logger = Logger.apply(this.getClass.getSimpleName)
 
   private[actions] def updateContextWithRequestId(implicit hc: HeaderCarrier): Unit = {
@@ -58,7 +55,7 @@ class AuthenticateApplicationAction @Inject()(
     updateContextWithRequestId
 
     authorised(AuthProviders(AuthProvider.StandardApplication)).retrieve(Retrievals.applicationId) {
-      case Some(applicationId) if applicationIdIsAllowed(applicationId) =>
+      case Some(_) =>
         block(request)
       case _ =>
         logger.warn(

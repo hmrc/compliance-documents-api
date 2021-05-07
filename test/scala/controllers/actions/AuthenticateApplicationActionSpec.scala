@@ -80,14 +80,10 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
 
 
   "action.async" should {
-    s"return a $OK if application id matches a allowListed application id" in new Setup {
+    s"return a $OK if application id is present" in new Setup {
       (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.successful(Some("ID-BEINGCHECKED")))
-
-      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
-        .expects("apiDefinition.allowListedApplicationIds",*)
-        .returns(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
 
       val result: Future[Result] = action.async(mockBody)(FakeRequest())
 
@@ -115,20 +111,6 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
       status(result) shouldBe UNAUTHORIZED
       contentAsJson(result) shouldBe Json.obj("code" -> "UNAUTHORIZED", "message" -> "Bearer token is missing or not authorized")
     }
-    s"return a $UNAUTHORIZED if application id doesn't match a allowListed application id" in new Setup {
-      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
-        .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
-        .returns(Future.successful(Some("ID-3")))
-
-      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
-        .expects("apiDefinition.allowListedApplicationIds",*)
-        .returns(Some(Seq("ID-1", "ID-2")))
-
-      val result: Future[Result] = action.async(mockBody)(FakeRequest())
-
-      status(result) shouldBe UNAUTHORIZED
-      contentAsJson(result) shouldBe Json.obj("code" -> "UNAUTHORIZED", "message" -> "Bearer token is missing or not authorized")
-    }
 
     s"return a $INTERNAL_SERVER_ERROR if an unexpected exception occurs" in new Setup {
       (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
@@ -146,10 +128,6 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
       (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.successful(Some("ID-BEINGCHECKED")))
-
-      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
-        .expects("apiDefinition.allowListedApplicationIds",*)
-        .returns(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
 
       val result: Future[Result] = action.async(mockBody)(
         FakeRequest()
