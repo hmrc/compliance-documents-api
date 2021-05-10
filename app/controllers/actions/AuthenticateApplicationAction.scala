@@ -27,7 +27,7 @@ import play.api.{Configuration, Logger}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProvider, AuthProviders, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.LoggerHelper._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -49,8 +49,7 @@ class AuthenticateApplicationAction @Inject()(
   }
 
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
-    implicit val hc: HeaderCarrier =
-      HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request = request)
 
     updateContextWithRequestId
 
