@@ -3,7 +3,6 @@ import sbt.IntegrationTest
 import sbt.Tests.{Group, SubProcess}
 import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
-import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "compliance-documents-api"
@@ -44,7 +43,7 @@ ScoverageKeys.coverageHighlighting := true
 
 publishingSettings
 resolvers += Resolver.jcenterRepo
-integrationTestSettings
+integrationTestSettings()
 coverageEnabled in(Test, compile) := true
 
 javaOptions ++= Seq(
@@ -58,7 +57,7 @@ def oneForkedJvmPerTest(tests: Seq[TestDefinition]): Seq[Group] = tests map { te
     ForkOptions().withRunJVMOptions(Vector("-Dtest.name=" + test.name, "-Dnashorn.regexp.impl=jdk"))
   ))
 }
-enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
+enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
 scalacOptions ++= Seq(
   "-P:silencer:pathFilters=views;routes"
 )
