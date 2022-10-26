@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package controllers
 
 import connectors.ComplianceDocumentsConnector
 import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
-import models.responses.ErrorInternalServerError
+import models.responses.{DefaultErrorResponse, ErrorInternalServerError}
 
 import javax.inject._
 import play.api.Logger
@@ -27,7 +27,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.ValidationService
 import uk.gov.hmrc.http.HttpResponse
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.LoggerHelper
 import utils.LoggerHelper._
 
@@ -56,7 +56,7 @@ class VatRepaymentApiController @Inject()(
           s"Request received - passing on to IF", Some(request.correlationId), Some(input)))
         complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId).map {
           el =>
-            el.map(response => responseMapper(response)) getOrElse InternalServerError(Json.toJson(ErrorInternalServerError))
+            el.map(response => responseMapper(response)) getOrElse InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))
         }
       case Some(errors) =>
         logger.warn(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",
