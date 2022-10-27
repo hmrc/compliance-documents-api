@@ -27,10 +27,10 @@ libraryDependencies ++= Seq(
 
 lazy val testScope = "test, it"
 libraryDependencies ++= Seq(
-  "org.scalatest"            %% "scalatest"                % "3.2.14"          % testScope,
+  "org.scalatest"            %% "scalatest"                % "3.2.9"          % testScope,
   "org.scalamock"            %% "scalamock"                % "5.2.0"           % testScope,
   "uk.gov.hmrc"              %% "bootstrap-test-play-28"   % bootstrapVersion  % Test,
-  "com.vladsch.flexmark"     % "flexmark-all"              % "0.62.2"          % testScope,
+  "com.vladsch.flexmark"     % "flexmark-all"              % "0.35.10"          % testScope,
   "org.pegdown"              % "pegdown"                   % "1.6.0"           % testScope,
   "org.scalatestplus.play"   %% "scalatestplus-play"       % "5.1.0"           % testScope,
   "com.github.tomakehurst"   % "wiremock-standalone"       % "2.27.2"          % testScope

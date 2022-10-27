@@ -33,7 +33,7 @@ class VatRepaymentISpec extends AnyWordSpec with Matchers with WireMockSpec with
       stubPostWithoutRequestAndResponseBody("/write/audit/merged", NO_CONTENT)
 
       val response = await(buildClient("/vat-repayment-info/4321")
-        .withHttpHeaders("CorrelationId" -> correlationId)
+        .withHttpHeaders("CorrelationId" -> correlationId, AUTHORIZATION -> "Bearer some-token")
         .post(createRepaymentDocumentJson))
 
       response.status mustBe ACCEPTED
@@ -50,7 +50,7 @@ class VatRepaymentISpec extends AnyWordSpec with Matchers with WireMockSpec with
       stubPostWithoutRequestAndResponseBody("/write/audit/merged", NO_CONTENT)
 
       val response = await(buildClient("/vat-repayment-info/4321")
-        .withHttpHeaders("CorrelationId" -> correlationId)
+        .withHttpHeaders("CorrelationId" -> correlationId, AUTHORIZATION -> "Bearer some-token")
         .post(createRepaymentDocumentJson))
 
       response.status mustBe INTERNAL_SERVER_ERROR
@@ -79,7 +79,7 @@ class VatRepaymentISpec extends AnyWordSpec with Matchers with WireMockSpec with
       stubPostWithoutRequestAndResponseBody("/write/audit/merged", NO_CONTENT)
 
       val response = await(buildClient("/vat-repayment-info/4321")
-        .withHttpHeaders("CorrelationId" -> correlationId)
+        .withHttpHeaders("CorrelationId" -> correlationId, AUTHORIZATION -> "Bearer some-token")
         .post(createRepaymentDocumentJson))
 
       response.status mustBe INTERNAL_SERVER_ERROR
