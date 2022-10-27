@@ -22,14 +22,12 @@ import javax.inject.Inject
 import org.slf4j.MDC
 import play.api.libs.json.Json
 import play.api.mvc.Results.{InternalServerError, Unauthorized}
-import play.api.mvc.Security.AuthenticatedRequest
 import play.api.mvc._
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProvider, AuthProviders, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendHeaderCarrierProvider
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.LoggerHelper._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -54,16 +52,11 @@ class AuthenticateApplicationAction @Inject()(
   }
 
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
+    implicit val headerCarrier: HeaderCarrier = hc(request)
 
-    println(" inside invoke block")
-//    implicit val hc: HeaderCarrier =
-//      HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-
-    implicit val headerCarrier :HeaderCarrier = hc(request)
     updateContextWithRequestId
-    println(" hc is ::"+headerCarrier)
     authorised(AuthProviders(AuthProvider.StandardApplication)).retrieve(Retrievals.applicationId) {
-      case Some(applicationId) if applicationIdIsAllowed(applicationId) => println(" inside case 1")
+      case Some(applicationId) if applicationIdIsAllowed(applicationId) =>
         block(request)
       case _ =>
         logger.warn(
@@ -71,13 +64,13 @@ class AuthenticateApplicationAction @Inject()(
         )
         Future.successful(Unauthorized(Json.toJson[DefaultErrorResponse](ErrorUnauthorized)))
     } recover {
-      case _: AuthorisationException => println(" inside case unauth")
+      case _: AuthorisationException =>
         logger.warn(
           logProcess("AuthenticateApplicationAction", "invokeBlock", "no application id or application id not in request")
         )
         Unauthorized(Json.toJson[DefaultErrorResponse](ErrorUnauthorized))
-      case e: Throwable => println(" inside case throwable")
-        println(
+      case e: Throwable =>
+        logger.warn(
           logProcess("AuthenticateApplicationAction", "invokeBlock", s"an unexpected exception occurred: $e")
         )
         InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))
