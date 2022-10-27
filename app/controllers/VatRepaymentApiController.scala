@@ -43,10 +43,8 @@ class VatRepaymentApiController @Inject()(
 
 
   def postRepaymentData(documentId: String): Action[AnyContent] = (authenticateApplication andThen getCorrelationId).async { implicit request =>
-    println(" inside postpostRepaymentData")
 
     val input = request.body.asJson.getOrElse(Json.parse("{}"))
-    println(" input is ::"+input)
 
     logger.info(logProcess("VatRepaymentApiController",
       "postRepaymentData",
