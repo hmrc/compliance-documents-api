@@ -21,7 +21,7 @@ import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationId
 import models.responses.{DefaultErrorResponse, ErrorInternalServerError}
 
 import javax.inject._
-import play.api.Logger
+import play.api.Logging
 import play.api.http.ContentTypes
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
@@ -39,12 +39,15 @@ class VatRepaymentApiController @Inject()(
   getCorrelationId: ValidateCorrelationIdHeaderAction,
   authenticateApplication: AuthenticateApplicationAction,
   cc: ControllerComponents
-)(implicit ec: ExecutionContext) extends BackendController(cc) {
-  private val logger: Logger = Logger(this.getClass)
+)(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+
 
   def postRepaymentData(documentId: String): Action[AnyContent] = (authenticateApplication andThen getCorrelationId).async { implicit request =>
+    println(" inside postpostRepaymentData")
 
     val input = request.body.asJson.getOrElse(Json.parse("{}"))
+    println(" input is ::"+input)
+
     logger.info(logProcess("VatRepaymentApiController",
       "postRepaymentData",
       s"Post request received",
@@ -59,7 +62,7 @@ class VatRepaymentApiController @Inject()(
             el.map(response => responseMapper(response)) getOrElse InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))
         }
       case Some(errors) =>
-        logger.warn(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",
+        logger.info(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",
           s"request body didn't match json with errors: ${Json.prettyPrint(errors)}",
           Some(request.correlationId), Some(input)))
         Future.successful(BadRequest(errors))
