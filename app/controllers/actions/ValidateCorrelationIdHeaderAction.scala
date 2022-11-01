@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package controllers.actions
 
 import com.google.inject.Inject
-import models.responses.{InvalidCorrelationId, MissingCorrelationId}
+import models.responses.{InvalidCorrelationId, MissingCorrelationId, OtherError}
 import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.Results.BadRequest
@@ -51,12 +51,12 @@ class ValidateCorrelationIdHeaderAction @Inject()(val parser: BodyParsers.Defaul
         ("ValidateCorrelationIdHeaderAction", "invokeBlock", s"invalid CorrelationId found in request",
           Some(invalidCorrelationId))
         )
-        Future.successful(BadRequest(Json.toJson(InvalidCorrelationId())))
+        Future.successful(BadRequest(Json.toJson[OtherError](InvalidCorrelationId())))
     }.getOrElse {
       logger.warn(LoggerHelper.logProcess
       ("ValidateCorrelationIdHeaderAction", "invokeBlock", "failed to retrieve CorrelationId in request")
       )
-      Future.successful(BadRequest(Json.toJson(MissingCorrelationId())))
+      Future.successful(BadRequest(Json.toJson[OtherError](MissingCorrelationId())))
     }
   }
 }

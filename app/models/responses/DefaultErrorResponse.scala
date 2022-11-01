@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package models.responses
 
+import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json, Writes}
 
 abstract class DefaultErrorResponse(
@@ -24,11 +25,11 @@ abstract class DefaultErrorResponse(
   val message:        String
 )
 
-case object ErrorUnauthorized extends DefaultErrorResponse(401, "UNAUTHORIZED", "Bearer token is missing or not authorized")
+case object ErrorUnauthorized extends DefaultErrorResponse(UNAUTHORIZED, "UNAUTHORIZED", "Bearer token is missing or not authorized")
 
-case class ErrorGenericBadRequest(msg: String = "Bad Request") extends DefaultErrorResponse(400, "BAD_REQUEST", msg)
+case class ErrorGenericBadRequest(msg: String = "Bad Request") extends DefaultErrorResponse(BAD_REQUEST, "BAD_REQUEST", msg)
 
-case object ErrorInternalServerError extends DefaultErrorResponse(500, "INTERNAL_SERVER_ERROR", "Internal server error")
+case object ErrorInternalServerError extends DefaultErrorResponse(INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "Internal server error")
 
 object DefaultErrorResponse {
   implicit val writes = new Writes[DefaultErrorResponse] {

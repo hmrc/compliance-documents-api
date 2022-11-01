@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,17 +127,17 @@ class ValidationService @Inject()(resources: ResourceService) {
             .fold(invalid => Some(Json.toJson(invalid)), _ => None)
         } else {
           Some(
-            Json.toJson(BadRequestErrorResponse(getFieldErrorsFromReport(result), None))
+            Json.toJson[BadRequestErrorResponse](BadRequestErrorResponse(getFieldErrorsFromReport(result), None))
           )
         }
       }
       else {
-        Some(Json.toJson(InvalidJsonType()))
+        Some(Json.toJson[OtherError](InvalidJsonType()))
       }
 
     } else {
       Some(
-        Json.toJson(InvalidDocId())
+        Json.toJson[OtherError] (InvalidDocId())
       )
     }
   }

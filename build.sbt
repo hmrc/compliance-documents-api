@@ -17,9 +17,9 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(PlayKeys.playDefaultPort := 7053)
 
-
+val bootstrapVersion = "7.8.0"
 libraryDependencies ++= Seq(
-  "uk.gov.hmrc" %% "bootstrap-play-26" % "4.0.0",
+  "uk.gov.hmrc"                 %% "bootstrap-backend-play-28"% bootstrapVersion,
   "com.github.java-json-tools"  % "json-schema-validator"     % "2.2.14",
   compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
   "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
@@ -27,13 +27,13 @@ libraryDependencies ++= Seq(
 
 lazy val testScope = "test, it"
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.2.0" % testScope,
-  "org.scalamock" %% "scalamock" % "4.4.0" % testScope,
-  "com.typesafe.play" %% "play-test" % current % testScope,
-  "com.vladsch.flexmark" % "flexmark-all" % "0.36.8" % testScope,
-  "org.pegdown" % "pegdown" % "1.6.0" % testScope,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3" % testScope,
-  "com.github.tomakehurst" % "wiremock-standalone" % "2.26.3" % testScope
+  "org.scalatest"            %% "scalatest"                % "3.2.9"          % testScope,
+  "org.scalamock"            %% "scalamock"                % "5.2.0"           % testScope,
+  "uk.gov.hmrc"              %% "bootstrap-test-play-28"   % bootstrapVersion  % Test,
+  "com.vladsch.flexmark"     % "flexmark-all"              % "0.35.10"          % testScope,
+  "org.pegdown"              % "pegdown"                   % "1.6.0"           % testScope,
+  "org.scalatestplus.play"   %% "scalatestplus-play"       % "5.1.0"           % testScope,
+  "com.github.tomakehurst"   % "wiremock-standalone"       % "2.27.2"          % testScope
 )
 
 ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;"
