@@ -4,12 +4,12 @@ info:
   description: |
     # Overview
     VAT Repayments Info API will support the information transfer of VAT repayment data between SAS and Electronic Folders for use by Case Workers and Contact Centre staff.
-    ### Project Summary
+    # Project Summary
     The Protect Connect Project aims to reduce the load and dependency on the current Connect Platform which is inflexible in meeting changing business requirements due to its bespoke design. Also, because of growth of data volumes and restrictions on expanding the current platform, system performance has degraded over time and is directly impacting HMRC's ability to identify non-compliance and respond effectively to business demands due to latency and capacity issues. Therefore the Protect Connect Project will migrate the TRUCE service and parts of Connect to a new service provider.
   
     The chosen provider is SAS Software Inc and the service will be provided as a PaaS hosted on AWS. The SAS solution includes SAS Visual Investigator which will be used by operators to manage risk alerts raised as the result of risk rules. Risk alerts which are deemed to require further, more complex investigation &/or contact with the customer will be transferred to Caseflow.
     
-    ### Protect Connect documents
+    # Protect Connect documents
     In the Protect Connect project, the property values required are:
       - In the URI, the dynamic path parameter `{document-id}` must be a numeric string starting at 810000000
       - Only the object `ef` within the `classIndex` must be supplied; do not use the alternative objects `nReg` and `pReg`
@@ -24,11 +24,11 @@ info:
       - the property `enquiryReference` must be left blank
       - the property `caseReference` must be left blank
     
-    ### Versioning
+    # Versioning
     When an API changes in a way that is backwards-incompatible, we increase the version number of the API. 
     See our [reference guide](/api-documentation/docs/reference-guide#versioning) for more on versioning.
     
-    ### Errors
+    # Errors
     We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:
     - 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action
     - 400 to 499 if it failed because of a client error by your application
@@ -37,40 +37,40 @@ info:
     Errors specific to each API are shown in the Endpoints section, under Response. See our 
     [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors.
     
-    ### Testing
+    # Testing
     You can use the sandbox environment to [test this API](https://developer.service.hmrc.gov.uk/api-documentation/docs/testing).
 
   contact: {}
   version: '1.0'
 servers:
-- url: https://api.service.hmrc.gov.uk/
-  variables: {}
+  - url: https://api.service.hmrc.gov.uk/
+    variables: {}
 paths:
   /misc/compliance-documents/vat-repayment-info/{document-id}:
     post:
       tags:
-      - misc
+        - misc
       summary: post-document-api
       description: Passing VAT repayment data to integration framework
       operationId: post-document-api
       parameters:
-      - name: document-id
-        in: path
-        description: A string representation of an integer in the range 0 to 18439999999999999999.
-        required: true
-        style: simple
-        schema:
-          pattern: ^(([0-9]{1,19})|(1[0-7][0-9]{18})|(18[0-3][0-9]{17})|(184[0-3][0-9]{16}))$
-          type: string
-          example: '18439999999999999999'
-      - name: CorrelationId
-        in: header
-        description: A UUID identifier of the transaction.
-        required: true
-        style: simple
-        schema:
-          type: string
-          example: a1e8057e-fbbc-47a8-a8b4-78d9f015c253
+        - name: document-id
+          in: path
+          description: A string representation of an integer in the range 0 to 18439999999999999999.
+          required: true
+          style: simple
+          schema:
+            pattern: ^(([0-9]{1,19})|(1[0-7][0-9]{18})|(18[0-3][0-9]{17})|(184[0-3][0-9]{16}))$
+            type: string
+            example: '18439999999999999999'
+        - name: CorrelationId
+          in: header
+          description: A UUID identifier of the transaction.
+          required: true
+          style: simple
+          schema:
+            type: string
+            example: a1e8057e-fbbc-47a8-a8b4-78d9f015c253
       requestBody:
         description: ''
         content:
