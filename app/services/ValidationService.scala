@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import models.responses._
 import play.api.libs.json.{Json, _}
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable
+import scala.Seq
 
 class ValidationService @Inject()(resources: ResourceService) {
 
@@ -63,7 +63,7 @@ class ValidationService @Inject()(resources: ResourceService) {
     ).toList).getOrElse(List())
   }
 
-  def getFieldErrorsFromReport(report: ProcessingReport, prefix: String = ""): immutable.Seq[FieldError] = {
+  def getFieldErrorsFromReport(report: ProcessingReport, prefix: String = ""): Seq[FieldError] = {
     report.iterator.asScala.toList
       .flatMap {
         error =>
@@ -94,19 +94,19 @@ class ValidationService @Inject()(resources: ResourceService) {
       case JsSuccess(x, _) if x.keys("pReg") => getResult(pRegSchema)
       case JsSuccess(x, _) if x.keys("nReg") => getResult(nRegSchema)
       case JsError(errors) =>
-        Left(mappingErrorResponse(errors.map {
+        Left(mappingErrorResponse(errors.toSeq.map {
           case (_, errors) =>
-            (__ \ "documentMetadata" \ "classIndex", errors)
+            (__ \ "documentMetadata" \ "classIndex", errors.toSeq)
         }, getClassDoc(docJson)))
     }
   }
 
-  private def mappingErrorResponse(mappingErrors: Seq[(JsPath, Seq[JsonValidationError])], typeOfDoc: Option[String]): BadRequestErrorResponse = {
+   def mappingErrorResponse(mappingErrors: scala.Seq[(JsPath, scala.Seq[JsonValidationError])], typeOfDoc: Option[String]): BadRequestErrorResponse = {
     val errors = mapErrors(mappingErrors)
     BadRequestErrorResponse(errors, typeOfDoc)
   }
 
-  private def mapErrors(mappingErrors: Seq[(JsPath, Seq[JsonValidationError])]) = {
+  private def mapErrors(mappingErrors: scala.Seq[(JsPath, scala.Seq[JsonValidationError])]) = {
     mappingErrors.map {
       x => InvalidField(path = x._1.toString())
     }
