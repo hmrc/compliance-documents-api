@@ -24,7 +24,7 @@ import models.responses._
 import play.api.libs.json.{Json, _}
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable
+import scala.Seq
 
 class ValidationService @Inject()(resources: ResourceService) {
 
@@ -63,7 +63,7 @@ class ValidationService @Inject()(resources: ResourceService) {
     ).toList).getOrElse(List())
   }
 
-  def getFieldErrorsFromReport(report: ProcessingReport, prefix: String = ""): immutable.Seq[FieldError] = {
+  def getFieldErrorsFromReport(report: ProcessingReport, prefix: String = ""): Seq[FieldError] = {
     report.iterator.asScala.toList
       .flatMap {
         error =>
@@ -94,9 +94,9 @@ class ValidationService @Inject()(resources: ResourceService) {
       case JsSuccess(x, _) if x.keys("pReg") => getResult(pRegSchema)
       case JsSuccess(x, _) if x.keys("nReg") => getResult(nRegSchema)
       case JsError(errors) =>
-        Left(mappingErrorResponse(errors.map {
+        Left(mappingErrorResponse(errors.toSeq.map {
           case (_, errors) =>
-            (__ \ "documentMetadata" \ "classIndex", errors)
+            (__ \ "documentMetadata" \ "classIndex", errors.toSeq)
         }, getClassDoc(docJson)))
     }
   }

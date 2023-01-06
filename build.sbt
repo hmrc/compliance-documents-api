@@ -9,7 +9,7 @@ val appName = "compliance-documents-api"
 val silencerVersion = "1.7.0"
 
 majorVersion := 0
-scalaVersion := "2.12.11"
+scalaVersion := "2.13.10"
 
 
 lazy val microservice = Project(appName, file("."))
@@ -17,12 +17,12 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(PlayKeys.playDefaultPort := 7053)
 
+scalacOptions += "-Wconf:src=routes/.*:s"
+scalacOptions +=  "-Wconf:cat=unused-imports&src=html/.*:s"
 val bootstrapVersion = "7.8.0"
 libraryDependencies ++= Seq(
   "uk.gov.hmrc"                 %% "bootstrap-backend-play-28"% bootstrapVersion,
-  "com.github.java-json-tools"  % "json-schema-validator"     % "2.2.14",
-  compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-  "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
+  "com.github.java-json-tools"  % "json-schema-validator"     % "2.2.14"
 )
 
 lazy val testScope = "test, it"
@@ -58,6 +58,3 @@ def oneForkedJvmPerTest(tests: Seq[TestDefinition]): Seq[Group] = tests map { te
   ))
 }
 enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
-scalacOptions ++= Seq(
-  "-P:silencer:pathFilters=views;routes"
-)
