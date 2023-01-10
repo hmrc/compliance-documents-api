@@ -21,8 +21,13 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
+import akka.util.Timeout
+import org.scalatest.tools.Durations.Duration
+
+import scala.concurrent.duration.Duration
 
 class VatRepaymentISpec extends AnyWordSpec with Matchers with WireMockSpec with Fixtures {
+  implicit val timeout:Timeout = Timeout.durationToTimeout(Duration.create(30,"s"))
   "POST /vat-repayment-info/(id)" should {
     s"return an $ACCEPTED if $ACCEPTED received from IF" in {
       stubPostWithoutResponseBody("/organisations/document/4321", ACCEPTED, correlationId)
