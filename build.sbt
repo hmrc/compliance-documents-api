@@ -19,7 +19,7 @@ lazy val microservice = Project(appName, file("."))
 
 scalacOptions += "-Wconf:src=routes/.*:s"
 scalacOptions +=  "-Wconf:cat=unused-imports&src=html/.*:s"
-val bootstrapVersion = "7.8.0"
+val bootstrapVersion = "7.9.0"
 libraryDependencies ++= Seq(
   "uk.gov.hmrc"                 %% "bootstrap-backend-play-28"% bootstrapVersion,
   "com.github.java-json-tools"  % "json-schema-validator"     % "2.2.14"
@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   "com.vladsch.flexmark"     % "flexmark-all"              % "0.35.10"          % testScope,
   "org.pegdown"              % "pegdown"                   % "1.6.0"           % testScope,
   "org.scalatestplus.play"   %% "scalatestplus-play"       % "5.1.0"           % testScope,
-  "com.github.tomakehurst"   % "wiremock-standalone"       % "2.27.2"          % testScope
+  "com.github.tomakehurst"   % "wiremock-standalone"       % "3.0.0-beta-2"          % testScope
 )
 
 ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;"
