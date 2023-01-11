@@ -22,7 +22,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import akka.util.Timeout
-import org.scalatest.tools.Durations.Duration
 
 import scala.concurrent.duration.Duration
 
