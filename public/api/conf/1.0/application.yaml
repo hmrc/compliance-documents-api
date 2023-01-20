@@ -255,7 +255,7 @@ components:
         clientCredentials:
           tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
           scopes:
-            write:protect-connect protect-connect
+            write:protect-connect: protect-connect
 
   schemas:
     errorResponse:
