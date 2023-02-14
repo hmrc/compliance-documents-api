@@ -32,6 +32,7 @@ import utils.LoggerHelper
 import utils.LoggerHelper._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 class VatRepaymentApiController @Inject()(
   validator: ValidationService,
@@ -51,19 +52,26 @@ class VatRepaymentApiController @Inject()(
       s"Post request received",
       Some(request.correlationId),
       Some(input)))
-    validator.validate(input, documentId) match {
-      case None =>
+    Try {
+      validator.validate(input, documentId)
+    } match {
+      case Success(None) =>
         logger.info(logProcess("VatRepaymentApiController", "postRepaymentData: Right",
           s"Request received - passing on to IF", Some(request.correlationId), Some(input)))
         complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId).map {
           el =>
             el.map(response => responseMapper(response)) getOrElse InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))
         }
-      case Some(errors) =>
+      case Success(Some(errors)) =>
         logger.info(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Left",
           s"request body didn't match json with errors: ${Json.prettyPrint(errors)}",
           Some(request.correlationId), Some(input)))
         Future.successful(BadRequest(errors))
+
+      case Failure(ex) => logger.error(LoggerHelper.logProcess("VatRepaymentApiController", "postRepaymentData: Exception",
+        ex.getMessage,
+        Some(request.correlationId), Some(input)), ex)
+        Future.successful(InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError)))
     }
   }
 
