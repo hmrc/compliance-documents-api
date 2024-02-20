@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package api
+package test.api
 
-import helpers.{Fixtures, WireMockSpec}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
+import test.helpers.{Fixtures, WireMockSpec}
 import akka.util.Timeout
 
 import scala.concurrent.duration.Duration
