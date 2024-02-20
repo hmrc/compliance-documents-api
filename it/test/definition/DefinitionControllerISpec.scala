@@ -17,7 +17,6 @@
 package test.definition
 
 import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.{JsValue, Json}

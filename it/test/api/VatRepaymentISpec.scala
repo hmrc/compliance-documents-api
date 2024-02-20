@@ -16,12 +16,12 @@
 
 package test.api
 
+import org.apache.pekko.util.Timeout
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import test.helpers.{Fixtures, WireMockSpec}
-import akka.util.Timeout
 
 import scala.concurrent.duration.Duration
 
