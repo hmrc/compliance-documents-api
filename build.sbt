@@ -1,11 +1,9 @@
 import sbt.Tests.{Group, SubProcess}
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "compliance-documents-api"
-//val silencerVersion = "1.7.0"
+val silencerVersion = "1.7.4"
 
 majorVersion := 0
 scalaVersion := "2.13.12"
@@ -30,7 +28,6 @@ lazy val scoverageSettings = {
   )
 }
 
-publishingSettings
 resolvers += Resolver.jcenterRepo
 integrationTestSettings()
 coverageEnabled in(Test, compile) := true
