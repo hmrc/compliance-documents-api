@@ -19,7 +19,6 @@ package scala.connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.http.Fault
 import connectors.ComplianceDocumentsConnector
-import org.scalatest.time.{Millis, Seconds, Span}
 import play.api.Application
 import play.api.http.ContentTypes
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -29,9 +28,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ComplianceDocumentsConnectorSpec extends ConnectorSpec {
+class ComplianceDocumentsConnectorSpec extends ConnectorSpec with WireMockHelper {
   implicit val defaultPatience = PatienceConfig //PatienceConfig(timeout =  Span(30, Seconds), interval = Span(5, Millis))
-  override implicit lazy val app: Application = new GuiceApplicationBuilder()
+  implicit lazy val app: Application = new GuiceApplicationBuilder()
     .configure("integration-framework.base-url" -> s"http://localhost:${server.port}", "auditing.enabled" -> false)
     .build()
 
