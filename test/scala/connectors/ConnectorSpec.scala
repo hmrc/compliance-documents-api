@@ -19,11 +19,8 @@ package scala.connectors
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-
-trait ConnectorSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite
-  with WireMockHelper with ScalaFutures with IntegrationPatience {
+trait ConnectorSpec extends AnyWordSpec with Matchers with ScalaFutures with IntegrationPatience {
 
 
 }

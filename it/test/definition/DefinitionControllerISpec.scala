@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package definition
+package test.definition
 
 import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
 import play.api.test.Helpers.OK
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
-class DefinitionControllerISpec extends AnyWordSpec with Matchers with GuiceOneServerPerSuite with FutureAwaits with DefaultAwaitTimeout {
+class DefinitionControllerISpec extends PlaySpec with Matchers with GuiceOneServerPerSuite with FutureAwaits with DefaultAwaitTimeout {
 
   def wsClient: WSClient = app.injector.instanceOf[WSClient]
 
