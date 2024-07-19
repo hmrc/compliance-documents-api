@@ -23,8 +23,7 @@ import com.google.inject.Inject
 import models.responses._
 import play.api.libs.json.{Json, _}
 
-import scala.collection.JavaConverters._
-import scala.Seq
+import scala.jdk.CollectionConverters._
 
 class ValidationService @Inject()(resources: ResourceService) {
 
