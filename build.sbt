@@ -3,16 +3,9 @@ import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
 val appName = "compliance-documents-api"
-val silencerVersion = "1.7.4"
 
 majorVersion := 0
 scalaVersion := "2.13.12"
-
-
-lazy val microservice = Project(appName, file("."))
-  .configs(IntegrationTest)
-  .disablePlugins(JUnitXmlReportPlugin)
-  .settings(PlayKeys.playDefaultPort := 7053)
 
 scalacOptions += "-Xlint:-missing-interpolator"
 scalacOptions += "-Wconf:src=routes/.*:s"
@@ -44,4 +37,10 @@ def oneForkedJvmPerTest(tests: Seq[TestDefinition]): Seq[Group] = tests map { te
     ForkOptions().withRunJVMOptions(Vector("-Dtest.name=" + test.name, "-Dnashorn.regexp.impl=jdk"))
   ))
 }
+
 enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+
+lazy val microservice = Project(appName, file("."))
+  .configs(IntegrationTest)
+  .disablePlugins(JUnitXmlReportPlugin)
+  .settings(PlayKeys.playDefaultPort := 7053)
