@@ -14,6 +14,7 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(PlayKeys.playDefaultPort := 7053)
 
+scalacOptions += "-Xlint:-missing-interpolator"
 scalacOptions += "-Wconf:src=routes/.*:s"
 scalacOptions +=  "-Wconf:cat=unused-imports&src=html/.*:s"
 
