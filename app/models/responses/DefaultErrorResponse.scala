@@ -32,7 +32,7 @@ case class ErrorGenericBadRequest(msg: String = "Bad Request") extends DefaultEr
 case object ErrorInternalServerError extends DefaultErrorResponse(INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "Internal server error")
 
 object DefaultErrorResponse {
-  implicit val writes = new Writes[DefaultErrorResponse] {
+  implicit val writes: Writes[DefaultErrorResponse] = new Writes[DefaultErrorResponse] {
     def writes(e: DefaultErrorResponse): JsValue = Json.obj("code" -> e.errorCode, "message" -> e.message)
   }
 }

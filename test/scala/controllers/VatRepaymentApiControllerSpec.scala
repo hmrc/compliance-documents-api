@@ -61,13 +61,12 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
       StubbedCorrelationIdAction
     }
 
-
     val testController: VatRepaymentApiController = new VatRepaymentApiController(mockValidation, connector, StubbedCorrelationIdAction, mockAuthApp, mockCc)
     val documentId: String = "532493"
     val connectorResponse: Option[HttpResponse] = if (serverError) {
       Option.empty[HttpResponse]
     } else {
-      Some(HttpResponse(ACCEPTED, None,
+      Some(HttpResponse(ACCEPTED, "",
         Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
       )
     }

@@ -34,8 +34,6 @@ class ValidationServiceSpec extends AnyWordSpec with Matchers with MockFactory {
 
   def validationService = new ValidationService(mockResource)
 
-
-
   "The validation service" should {
     "return errors when model does not map properly" in {
       (mockResource.getFile _).expects("/schemas/addDocumentSchemaNoClassType.json").returns(
@@ -148,7 +146,7 @@ class ValidationServiceSpec extends AnyWordSpec with Matchers with MockFactory {
     "return bad request if given document with a class doc that's not Json" in {
       val resultOfBadOne = validationService.validateDocType(Json.parse(notTrueJsonClassDoc))
       assert(resultOfBadOne.isLeft)
-      resultOfBadOne.left.get shouldBe BadRequestErrorResponse(
+      resultOfBadOne.swap.toOption.get shouldBe BadRequestErrorResponse(
         List(InvalidField("/documentMetadata/classIndex")),
         None
       )
