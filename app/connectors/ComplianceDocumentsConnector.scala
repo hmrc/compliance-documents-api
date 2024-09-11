@@ -20,7 +20,7 @@ import connectors.httpParsers.ComplianceDocumentsConnectorParser
 import play.api.http.Status._
 import javax.inject._
 import play.api.http.{ContentTypes, HeaderNames}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.JsValue
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
@@ -43,14 +43,6 @@ class ComplianceDocumentsConnector @Inject()(
   lazy val ifBaseUrl: String = config.get[String]("integration-framework.base-url")
   lazy val vatRepaymentUri: String = config.get[String]("integration-framework.endpoints.vat-repayment-info")
 
-
-  private def headers(correlationId: String) = HeaderCarrier().withExtraHeaders(
-    HeaderNames.CONTENT_TYPE -> ContentTypes.JSON,
-    "CorrelationId" -> correlationId,
-    "Environment" -> iFEnvironment,
-    "Authorization" -> s"Bearer $bearerToken"
-  )
-
   def vatRepayment(request: JsValue, correlationId: String, documentId: String)
                   (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[HttpResponse]] = {
     val url = s"$ifBaseUrl$vatRepaymentUri/$documentId"
@@ -69,15 +61,15 @@ class ComplianceDocumentsConnector @Inject()(
         response.status match {
           case ACCEPTED => Some(response)
           case BAD_REQUEST | UNAUTHORIZED => None
-          case _ => None // You can add more conditions if needed
+          case _ => None
         }
       }
       .recover {
         case e: Exception =>
-                  logger.error(LoggerHelper.logProcess("ComplianceDocumentsConnector", "vatRepayment",
-                    s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} " +
-                      s"(IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)" + e, Some(correlationId), Some(request)))
-                  None
+          logger.error(LoggerHelper.logProcess("ComplianceDocumentsConnector", "vatRepayment",
+            s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} " +
+              s"(IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)" + e, Some(correlationId), Some(request)))
+          None
       }
   }
 }
