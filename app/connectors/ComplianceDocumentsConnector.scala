@@ -17,18 +17,20 @@
 package connectors
 
 import connectors.httpParsers.ComplianceDocumentsConnectorParser
-
+import play.api.http.Status._
 import javax.inject._
 import play.api.http.{ContentTypes, HeaderNames}
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsValue, Json}
 import play.api.{Configuration, Logger}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import utils.LoggerHelper
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class ComplianceDocumentsConnector @Inject()(
-  httpClient: HttpClient,
+  httpClient: HttpClientV2,
   config: Configuration
 ) extends ComplianceDocumentsConnectorParser {
 
@@ -50,15 +52,32 @@ class ComplianceDocumentsConnector @Inject()(
   )
 
   def vatRepayment(request: JsValue, correlationId: String, documentId: String)
-                  (implicit ec: ExecutionContext): Future[Option[HttpResponse]] = {
-    httpClient.POST[JsValue, Option[HttpResponse]](s"$ifBaseUrl$vatRepaymentUri/$documentId", request)(
-      implicitly, httpReads(correlationId), headers(correlationId), ec
-    ).recover {
+                  (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[HttpResponse]] = {
+    val url = s"$ifBaseUrl$vatRepaymentUri/$documentId"
+    val customHeaders = Seq(
+      HeaderNames.CONTENT_TYPE -> ContentTypes.JSON,
+      "CorrelationId" -> correlationId,
+      "Environment" -> iFEnvironment,
+      "Authorization" -> s"Bearer $bearerToken"
+    )
+
+    httpClient.post(url"$url")
+      .withBody(request)
+      .setHeader(customHeaders: _*)
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case ACCEPTED => Some(response)
+          case BAD_REQUEST | UNAUTHORIZED => None
+          case _ => None // You can add more conditions if needed
+        }
+      }
+      .recover {
         case e: Exception =>
-          logger.error(LoggerHelper.logProcess("ComplianceDocumentsConnector", "vatRepayment",
-            s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} " +
-              s"(IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)" + e, Some(correlationId), Some(request)))
-          None
+                  logger.error(LoggerHelper.logProcess("ComplianceDocumentsConnector", "vatRepayment",
+                    s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} " +
+                      s"(IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)" + e, Some(correlationId), Some(request)))
+                  None
       }
   }
 }
