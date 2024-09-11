@@ -17,18 +17,20 @@
 package connectors
 
 import connectors.httpParsers.ComplianceDocumentsConnectorParser
-
+import play.api.http.Status._
 import javax.inject._
 import play.api.http.{ContentTypes, HeaderNames}
 import play.api.libs.json.JsValue
 import play.api.{Configuration, Logger}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import utils.LoggerHelper
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class ComplianceDocumentsConnector @Inject()(
-  httpClient: HttpClient,
+  httpClient: HttpClientV2,
   config: Configuration
 ) extends ComplianceDocumentsConnectorParser {
 
@@ -41,19 +43,28 @@ class ComplianceDocumentsConnector @Inject()(
   lazy val ifBaseUrl: String = config.get[String]("integration-framework.base-url")
   lazy val vatRepaymentUri: String = config.get[String]("integration-framework.endpoints.vat-repayment-info")
 
-
-  private def headers(correlationId: String) = HeaderCarrier().withExtraHeaders(
-    HeaderNames.CONTENT_TYPE -> ContentTypes.JSON,
-    "CorrelationId" -> correlationId,
-    "Environment" -> iFEnvironment,
-    "Authorization" -> s"Bearer $bearerToken"
-  )
-
   def vatRepayment(request: JsValue, correlationId: String, documentId: String)
-                  (implicit ec: ExecutionContext): Future[Option[HttpResponse]] = {
-    httpClient.POST[JsValue, Option[HttpResponse]](s"$ifBaseUrl$vatRepaymentUri/$documentId", request)(
-      implicitly, httpReads(correlationId), headers(correlationId), ec
-    ).recover {
+                  (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[HttpResponse]] = {
+    val url = s"$ifBaseUrl$vatRepaymentUri/$documentId"
+    val customHeaders = Seq(
+      HeaderNames.CONTENT_TYPE -> ContentTypes.JSON,
+      "CorrelationId" -> correlationId,
+      "Environment" -> iFEnvironment,
+      "Authorization" -> s"Bearer $bearerToken"
+    )
+
+    httpClient.post(url"$url")
+      .withBody(request)
+      .setHeader(customHeaders: _*)
+      .execute[HttpResponse]
+      .map { response =>
+        response.status match {
+          case ACCEPTED => Some(response)
+          case BAD_REQUEST | UNAUTHORIZED => None
+          case _ => None
+        }
+      }
+      .recover {
         case e: Exception =>
           logger.error(LoggerHelper.logProcess("ComplianceDocumentsConnector", "vatRepayment",
             s"Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} " +
