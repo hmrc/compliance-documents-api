@@ -25,10 +25,6 @@ resolvers += Resolver.jcenterRepo
 integrationTestSettings()
 coverageEnabled in(Test, compile) := true
 
-javaOptions ++= Seq(
-  "-Dnashorn.regexp.impl=jdk"
-)
-
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .configs(IntegrationTest)

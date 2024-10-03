@@ -200,7 +200,7 @@ object VatDocumentExample {
       |      "description": "The actual Base64 encoded document, maximum size ~10MB. This MUST be a valid base64 string.",
       |      "type": "string",
       |      "format": "binary",
-      |      "pattern": "^[A-Za-z0-9+/]{2,14680064}={0,2}?$"
+      |      "pattern": "^[A-Za-z0-9+/]{2,255}={0,2}?$"
       |    },
       |    "documentMetadata": {
       |      "$ref": "#/definitions/documentMetadata"
