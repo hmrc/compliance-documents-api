@@ -36,13 +36,6 @@ class DefinitionControllerISpec extends PlaySpec with Matchers with GuiceOneServ
       response.body[JsValue] mustBe Json.parse(
         s"""
            |{
-           |  "scopes": [
-           |    {
-           |      "key": "write:protect-connect",
-           |      "name": "Protect Connect",
-           |      "description": "Scope for accessing protect connect APIs"
-           |    }
-           |  ],
            |  "api": {
            |    "name": "Compliance Documents",
            |    "description": "Api to manage vat repayment documents sent to EF",
