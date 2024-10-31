@@ -7,7 +7,8 @@ object AppDependencies {
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"               %% s"bootstrap-backend-$playVersion" % bootstrapVersion,
-    "com.github.java-json-tools" % "json-schema-validator"           % "2.2.14"
+    "com.github.java-json-tools" % "json-schema-validator"           % "2.2.14",
+    "org.graalvm.js"             % "js"                              % "23.0.4"
   )
 
   val test: Seq[ModuleID] = Seq(

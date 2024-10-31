@@ -195,13 +195,12 @@ object VatDocumentExample {
       |    "documentBinary",
       |    "documentMetadata"
       |  ],
-      |  "properties": {
-      |    "documentBinary": {
-      |      "description": "The actual Base64 encoded document, maximum size ~10MB. This MUST be a valid base64 string.",
-      |      "type": "string",
-      |      "format": "binary",
-      |      "pattern": "^[A-Za-z0-9+/]{2,14680064}={0,2}?$"
-      |    },
+      |    "properties": {
+      |      "documentBinary": {
+      |        "description": "The actual Base64 encoded document, maximum size ~10MB. This MUST be a valid base64 string.",
+      |        "type": "string",
+      |        "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+      |      },
       |    "documentMetadata": {
       |      "$ref": "#/definitions/documentMetadata"
       |    }
