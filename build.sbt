@@ -29,9 +29,6 @@ javaOptions ++= Seq(
   "-Dpolyglot.js.nashorn-compat=true"
 )
 
-
-
-
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .configs(IntegrationTest)
