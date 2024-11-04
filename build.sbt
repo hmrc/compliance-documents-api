@@ -26,7 +26,7 @@ integrationTestSettings()
 coverageEnabled in(Test, compile) := true
 
 javaOptions ++= Seq(
-  "-Dnashorn.regexp.impl=jdk"
+  "-Dpolyglot.js.nashorn-compat=true"
 )
 
 lazy val microservice = Project(appName, file("."))
