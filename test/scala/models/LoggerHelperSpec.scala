@@ -27,7 +27,7 @@ class LoggerHelperSpec extends AnyWordSpec with Matchers {
         LoggerHelper.logProcess("class", "method", "message") shouldBe("[class][method] message")
       }
       "return a correct format with correlation id" in {
-        LoggerHelper.logProcess("class", "method", "message", Some("1234")) shouldBe("[class][method] message, correlationId: 1234")
+        LoggerHelper.logProcess("class", "method", "message", Some("1234")) shouldBe("[class][method] message, correlationId: WRONG")
 
       }
     }
