@@ -9,7 +9,7 @@
   ],
   "properties": {
     "documentBinary": {
-      "description": "The actual Base64 encoded document, maximum size ~10MB. This MUST be a valid base64 string.",
+      "description": "The actual Base64 encoded document, maximum size ~10MB. This MUST be a valid base64 string. Validated by regex: ^[A-Za-z0-9+/]*={0,2}$ and size is limited by minLength and maxLength properties",
       "type": "string",
       "format": "binary",
       "pattern": "^[A-Za-z0-9+/]*={0,2}$",
