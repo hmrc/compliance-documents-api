@@ -16,18 +16,16 @@
 
 package scala.controllers.actions
 
-import java.util.UUID
-
 import controllers.actions.ValidateCorrelationIdHeaderAction
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.mvc.{BodyParsers, Result}
-import play.api.test.Helpers._
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{contentAsJson, status, stubControllerComponents}
+import play.api.test.Helpers._
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class ValidateCorrelationIdHeaderActionSpec extends AnyWordSpec with Matchers {

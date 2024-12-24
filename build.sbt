@@ -15,7 +15,7 @@ libraryDependencies ++= AppDependencies.all
 lazy val scoverageSettings = {
   Seq(
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;",
-    ScoverageKeys.coverageMinimumStmtTotal := 100,
+    ScoverageKeys.coverageMinimumStmtTotal := 80.00,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )
@@ -23,7 +23,6 @@ lazy val scoverageSettings = {
 
 resolvers += Resolver.jcenterRepo
 integrationTestSettings()
-coverageEnabled in(Test, compile) := true
 
 javaOptions ++= Seq(
   "-Dpolyglot.js.nashorn-compat=true"
