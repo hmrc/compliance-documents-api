@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package scala.controllers
 
-import java.util.UUID
-
 import connectors.ComplianceDocumentsConnector
 import controllers.actions.{AuthenticateApplicationAction, RequestWithCorrelationId, ValidateCorrelationIdHeaderAction}
 import controllers.{VatRepaymentApiController, routes}
@@ -30,7 +28,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ValidationService
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import utils.LoggerHelper
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.exampleData.VatDocumentExample._
 
@@ -80,7 +80,6 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
         )
     }
     (mockValidation.validate(_: JsValue, _: String)).expects(*, *).returns(validationErrors)
-
   }
 
 
@@ -88,6 +87,8 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
     "calling the getResponse route" should {
       "return Accepted if given a valid Json validBody" in new Setup(validBody = Some(Json.parse(getExample("ef")))) {
 
+        LoggerHelper.logProcess("VatRepaymentApiControllerSpec", "postRepaymentData",
+          "Valid request with body received", Some(correlationId), Some(requestBody))
 
         val result: Future[Result] = testController.postRepaymentData(documentId)
           .apply(
@@ -97,11 +98,10 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
               .withHeaders("CorrelationId" -> correlationId)
               .withJsonBody(requestBody)
           )
-        status(result) shouldBe 202
+        status(result) shouldBe ACCEPTED
         contentAsString(result) shouldBe ""
-
-
       }
+
       "return BadRequest if not given a validBody" in new Setup(
         Some(Json.parse(
           """
@@ -109,6 +109,8 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
 """.stripMargin
         )), validBody = None
       ) {
+        LoggerHelper.logProcess("VatRepaymentApiControllerSpec", "postRepaymentData", "Invalid request body received", Some(correlationId), None)
+
         val result = testController.postRepaymentData(documentId)(
           FakeRequest(
             POST, routes.VatRepaymentApiController.postRepaymentData(documentId).url
@@ -130,6 +132,8 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
             |""".stripMargin
         )), validBody = None
       ) {
+        LoggerHelper.logProcess("VatRepaymentApiControllerSpec", "postRepaymentData", "Invalid JSON structure received", Some(correlationId), None)
+
         val result: Future[Result] = testController.postRepaymentData(documentId)
           .apply(
             FakeRequest(
@@ -149,6 +153,8 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
 
       "return InternalServerError if the connector is unsuccessful in communicating with IF" in new Setup(serverError = true,
         validBody = Some(Json.parse(getExample("nReg")))) {
+        LoggerHelper.logProcess("VatRepaymentApiControllerSpec", "postRepaymentData", "Connector communication failed", Some(correlationId), Some(requestBody))
+
         val result = testController.postRepaymentData(documentId)
           .apply(
             FakeRequest(
@@ -156,14 +162,12 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
             )
               .withHeaders("CorrelationId" -> correlationId)
               .withJsonBody(requestBody)
-              )
+          )
         status(result) shouldBe 500
         contentAsJson(result) shouldBe Json.obj(
           "code" -> "INTERNAL_SERVER_ERROR",
           "message" -> "Internal server error"
         )
-
-
       }
     }
   }
