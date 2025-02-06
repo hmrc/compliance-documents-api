@@ -1,6 +1,6 @@
 
 # compliance-documents-api
-Part of the MDTP Protect Connect APIs
+Part of the MDTP Investigation & Detection Risking Service (IDRS) APIs
 
 ## Running the service
 To run the service, in the repository's main directory, run `sbt run` - 7053 is the port the service is intended to run on.
