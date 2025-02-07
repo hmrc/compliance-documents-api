@@ -40,7 +40,6 @@ class ApiDocumentationControllerSpec
 
     "return the correct API definition JSON when valid configuration is provided" in {
       val config = Configuration(
-        "apiDefinition.whitelistedApplicationIds" -> Seq("app1", "app2"),
         "apiDefinition.status" -> "STABLE",
         "apiDefinition.endpointsEnabled" -> true
       )
@@ -49,7 +48,7 @@ class ApiDocumentationControllerSpec
       val result = controller.definition().apply(FakeRequest())
 
       status(result) mustBe OK
-      val expectedJson = Json.toJson(ApiDefinition(Seq("app1", "app2"), true, "STABLE"))
+      val expectedJson = Json.toJson(ApiDefinition(endpointsEnabled = true, "STABLE"))
       contentAsJson(result) mustBe expectedJson
     }
 
@@ -63,7 +62,7 @@ class ApiDocumentationControllerSpec
       val result = controller.definition().apply(FakeRequest())
 
       status(result) mustBe OK
-      val expectedJson = Json.toJson(ApiDefinition(Seq.empty, true, "BETA"))
+      val expectedJson = Json.toJson(ApiDefinition(endpointsEnabled = true, "BETA"))
       contentAsJson(result) mustBe expectedJson
     }
 
@@ -78,7 +77,7 @@ class ApiDocumentationControllerSpec
       val result = controller.definition().apply(FakeRequest())
 
       status(result) mustBe OK
-      val expectedJson = Json.toJson(ApiDefinition(Seq("app1"), false, "ALPHA"))
+      val expectedJson = Json.toJson(ApiDefinition(endpointsEnabled = false, "ALPHA"))
       contentAsJson(result) mustBe expectedJson
     }
   }

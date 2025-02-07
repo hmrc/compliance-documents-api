@@ -34,9 +34,6 @@ class ApiDocumentationController @Inject()(
   config: Configuration
 ) extends AssetsBuilder(httpErrorHandler, meta){
 
-  lazy val whitelistedApplicationIds: Seq[String] =
-    config.getOptional[Seq[String]]("apiDefinition.whitelistedApplicationIds").getOrElse(Seq.empty)
-
   lazy val status: String = config.get[String]("apiDefinition.status")
 
   lazy val endpointsEnabled: Boolean = config.get[Boolean]("apiDefinition.endpointsEnabled")
@@ -46,7 +43,6 @@ class ApiDocumentationController @Inject()(
       Ok(
         Json.toJson(
           ApiDefinition(
-            whitelistedApplicationIds,
             endpointsEnabled,
             status
           )

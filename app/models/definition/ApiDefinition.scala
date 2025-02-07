@@ -18,7 +18,7 @@ package models.definition
 
 import play.api.libs.json.{JsValue, Json, Writes}
 
-case class ApiDefinition(whitelistedApplicationIds: Seq[String], endpointsEnabled: Boolean, status: String) {
+case class ApiDefinition(endpointsEnabled: Boolean, status: String) {
   val apiConfig: JsValue = Json.obj(
     "name" -> "Compliance Documents",
     "description" -> "Api to manage vat repayment documents sent to EF",
@@ -30,8 +30,7 @@ case class ApiDefinition(whitelistedApplicationIds: Seq[String], endpointsEnable
         "status" -> status,
         "endpointsEnabled" -> endpointsEnabled,
         "access" -> Json.obj(
-          "type" -> "PRIVATE",
-          "whitelistedApplicationIds" -> whitelistedApplicationIds
+          "type" -> "PRIVATE"
         )
       )
     )
