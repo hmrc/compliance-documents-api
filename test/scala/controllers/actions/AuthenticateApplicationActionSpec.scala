@@ -41,11 +41,10 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
     implicit val hc: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("one-two-three")))
 
     val mockAuthConnector: AuthConnector = mock[AuthConnector]
-    val mockConfig: Configuration = mock[Configuration]
     val mockBodyParser: BodyParsers.Default = new BodyParsers.Default(stubControllerComponents().parsers)
     implicit val ec: ExecutionContext = ExecutionContext.global
 
-    val action: AuthenticateApplicationAction = new AuthenticateApplicationAction(mockAuthConnector, mockConfig, mockBodyParser)
+    val action: AuthenticateApplicationAction = new AuthenticateApplicationAction(mockAuthConnector, mockBodyParser)
 
     def mockBody: Future[Result] = Future.successful(Ok("{}"))
   }
@@ -80,14 +79,10 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
 
 
   "action.async" should {
-    s"return a $OK if application id matches a whitelisted application id" in new Setup {
+    s"return a $OK if application is authorised as a StandardApplication" in new Setup {
       (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.successful(Some("ID-BEINGCHECKED")))
-
-      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
-        .expects("apiDefinition.whitelistedApplicationIds",*)
-        .returns(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
 
       val result: Future[Result] = action.async(mockBody)(FakeRequest())
 
@@ -115,20 +110,6 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
       status(result) shouldBe UNAUTHORIZED
       contentAsJson(result) shouldBe Json.obj("code" -> "UNAUTHORIZED", "message" -> "Bearer token is missing or not authorized")
     }
-    s"return a $UNAUTHORIZED if application id doesn't match a whiteisted application id" in new Setup {
-      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
-        .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
-        .returns(Future.successful(Some("ID-3")))
-
-      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
-        .expects("apiDefinition.whitelistedApplicationIds",*)
-        .returns(Some(Seq("ID-1", "ID-2")))
-
-      val result: Future[Result] = action.async(mockBody)(FakeRequest())
-
-      status(result) shouldBe UNAUTHORIZED
-      contentAsJson(result) shouldBe Json.obj("code" -> "UNAUTHORIZED", "message" -> "Bearer token is missing or not authorized")
-    }
 
     s"return a $INTERNAL_SERVER_ERROR if an unexpected exception occurs" in new Setup {
       (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
@@ -146,10 +127,6 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
       (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.successful(Some("ID-BEINGCHECKED")))
-
-      (mockConfig.get[Option[Seq[String]]] (_:String)(_:ConfigLoader[Option[Seq[String]]]))
-        .expects("apiDefinition.whitelistedApplicationIds",*)
-        .returns(Some(Seq("ID-BEINGCHECKED", "ID-ANOTHER")))
 
       val result: Future[Result] = action.async(mockBody)(
         FakeRequest()

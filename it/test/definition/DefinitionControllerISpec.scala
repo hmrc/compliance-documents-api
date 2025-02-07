@@ -47,8 +47,7 @@ class DefinitionControllerISpec extends PlaySpec with Matchers with GuiceOneServ
            |        "status": "ALPHA",
            |        "endpointsEnabled": false,
            |        "access" : {
-           |          "type": "PRIVATE",
-           |          "whitelistedApplicationIds": ["ID-1"]
+           |          "type": "PRIVATE"
            |        }
            |      }
            |    ]
