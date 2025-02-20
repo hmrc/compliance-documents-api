@@ -19,23 +19,28 @@ package scala.controllers
 import connectors.ComplianceDocumentsConnector
 import controllers.actions.{AuthenticateApplicationAction, RequestWithCorrelationId, ValidateCorrelationIdHeaderAction}
 import controllers.{VatRepaymentApiController, routes}
-import org.scalamock.scalatest.MockFactory
+
+import scala.concurrent.ExecutionContext
+import scala.language.postfixOps
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{BodyParsers, ControllerComponents, Request, Result}
+import play.api.mvc.{AnyContent, BodyParsers, ControllerComponents, Request, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ValidationService
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HttpResponse
 import utils.LoggerHelper
-
+import org.mockito.Mockito.{times, verify}
+import controllers.actions.AuthenticateApplicationAction
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import java.util.UUID
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.exampleData.VatDocumentExample._
 
-class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockFactory {
-  implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = None)
+class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   class Setup(validationErrors: Option[JsValue] = None, serverError: Boolean = false,
               validBody: Option[JsValue]) {
@@ -57,7 +62,7 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
       }
     }
 
-    (mockAuthApp.andThen[Request] _).expects(*).returns {
+    when(mockAuthApp.andThen(ArgumentMatchers.any())).thenReturn{
       StubbedCorrelationIdAction
     }
 
@@ -70,18 +75,18 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockF
         Map("Content-Type" -> Seq("application/json"), "header" -> Seq("`123")))
       )
     }
-    if (validBody.isDefined) {
-      (connector.vatRepayment(_: JsValue, _: String, _: String)(_: ExecutionContext, _: HeaderCarrier))
-        .expects(validBody.get, correlationId, documentId, *, *)
-        .returns(
-          Future.successful(
-            connectorResponse
-          )
-        )
-    }
-    (mockValidation.validate(_: JsValue, _: String)).expects(*, *).returns(validationErrors)
-  }
 
+    if (validBody.isDefined) {
+      when(
+        connector.vatRepayment(
+          ArgumentMatchers.eq(validBody.get),
+          ArgumentMatchers.eq(correlationId),
+          ArgumentMatchers.eq(documentId)
+        )(ArgumentMatchers.any(), ArgumentMatchers.any())
+      ).thenReturn(Future.successful(connectorResponse))
+    }
+    when(mockValidation.validate(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(validationErrors)
+  }
 
   "The Vat Repayment Api Controller" when {
     "calling the getResponse route" should {

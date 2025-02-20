@@ -17,14 +17,16 @@
 package scala.connectors
 
 import connectors.httpParsers.ComplianceDocumentsConnectorParser
-import play.api.Logger
-import play.api.http.Status._
+import play.api.http.Status.*
 import uk.gov.hmrc.http.HttpResponse
 import utils.LoggerHelper.logProcess
-
 import scala.utils.BaseSpec.SpecBase
+import org.scalatestplus.mockito.MockitoSugar
+import uk.gov.hmrc.play.bootstrap.tools.LogCapturing
+import play.api.Logger
+import org.scalatest.matchers.should.Matchers.should
 
-class ComplianceDocumentsConnectorParserSpec extends SpecBase {
+class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar with LogCapturing {
 
   val testClassName = "TestComplianceDocumentsConnectorParser"
   val testUrl = "http://test-url"
@@ -33,86 +35,94 @@ class ComplianceDocumentsConnectorParserSpec extends SpecBase {
 
     "log a warning for NOT_FOUND status" in {
       val correlationId = "testCorrelationId"
-      val mockLogger: Logger = mock[Logger]
+      val testLogger = Logger("test-logger")
       val testParser = new ComplianceDocumentsConnectorParser {
         override val className: String = "TestComplianceDocumentsConnectorParser"
-        override val logger: Logger = mockLogger
+        override val logger = testLogger
       }
 
       val response = HttpResponse(NOT_FOUND, "")
-      testParser.httpReads(correlationId).read("GET", testUrl, response)
 
-      val expectedLogMessage = logProcess(
-        testClassName,
-        "connector parser",
-        s"received a not found status when calling $testUrl ( IF_VAT_REPAYMENT_ENDPOINT_NOT_FOUND_RESPONSE )",
-        Some(correlationId)
-      )
+      withCaptureOfLoggingFrom(testLogger) { events =>
+        testParser.httpReads(correlationId).read("GET", testUrl, response)
 
-      verify(mockLogger, times(1)).warn(expectedLogMessage)
+        val expectedLogMessage = logProcess(
+          testClassName,
+          "connector parser",
+          s"received a not found status when calling $testUrl ( IF_VAT_REPAYMENT_ENDPOINT_NOT_FOUND_RESPONSE )",
+          Some(correlationId)
+        )
+        events.map(_.getMessage) should contain(expectedLogMessage)
+      }
     }
 
     "log a warning for BAD_REQUEST status" in {
       val correlationId = "testCorrelationId"
-      val mockLogger: Logger = mock[Logger]
+      val testLogger = Logger("test-logger")
       val testParser = new ComplianceDocumentsConnectorParser {
         override val className: String = "TestComplianceDocumentsConnectorParser"
-        override val logger: Logger = mockLogger
+        override val logger = testLogger
       }
 
       val response = HttpResponse(BAD_REQUEST, "")
-      testParser.httpReads(correlationId).read("GET", testUrl, response)
 
-      val expectedLogMessage = logProcess(
-        testClassName,
-        "connector parser",
-        s"received a bad request status when calling $testUrl ( IF_VAT_REPAYMENT_ENDPOINT_BAD_REQUEST_RESPONSE )",
-        Some(correlationId)
-      )
+      withCaptureOfLoggingFrom(testLogger) { events =>
+        testParser.httpReads(correlationId).read("GET", testUrl, response)
 
-      verify(mockLogger, times(1)).warn(expectedLogMessage)
+        val expectedLogMessage = logProcess(
+          testClassName,
+          "connector parser",
+          s"received a bad request status when calling $testUrl ( IF_VAT_REPAYMENT_ENDPOINT_BAD_REQUEST_RESPONSE )",
+          Some(correlationId)
+        )
+        events.map(_.getMessage) should contain(expectedLogMessage)
+      }
     }
 
     "log a warning for unexpected status (e.g., 500 status)" in {
       val correlationId = "testCorrelationId"
-      val mockLogger: Logger = mock[Logger]
+      val testLogger = Logger("test-logger")
       val testParser = new ComplianceDocumentsConnectorParser {
         override val className: String = "TestComplianceDocumentsConnectorParser"
-        override val logger: Logger = mockLogger
+        override val logger = testLogger
       }
 
       val response = HttpResponse(INTERNAL_SERVER_ERROR, "")
-      testParser.httpReads(correlationId).read("GET", testUrl, response)
 
-      val expectedLogMessage = logProcess(
-        testClassName,
-        "connector parser",
-        s"received status 500 when calling $testUrl ( IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_RESPONSE )",
-        Some(correlationId)
-      )
+      withCaptureOfLoggingFrom(testLogger) { events =>
+        testParser.httpReads(correlationId).read("GET", testUrl, response)
 
-      verify(mockLogger, times(1)).warn(expectedLogMessage)
+        val expectedLogMessage = logProcess(
+          testClassName,
+          "connector parser",
+          s"received status 500 when calling $testUrl ( IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_RESPONSE )",
+          Some(correlationId)
+        )
+        events.map(_.getMessage) should contain(expectedLogMessage)
+      }
     }
 
     "log an info message for ACCEPTED status" in {
       val correlationId = "testCorrelationId"
-      val mockLogger: Logger = mock[Logger]
+      val testLogger = Logger("test-logger")
       val testParser = new ComplianceDocumentsConnectorParser {
         override val className: String = "TestComplianceDocumentsConnectorParser"
-        override val logger: Logger = mockLogger
+        override val logger = testLogger
       }
 
       val response = HttpResponse(ACCEPTED, "")
-      testParser.httpReads(correlationId).read("GET", testUrl, response)
 
-      val expectedLogMessage = logProcess(
-        testClassName,
-        "connector parser",
-        s"received an accepted when calling $testUrl",
-        Some(correlationId)
-      )
+      withCaptureOfLoggingFrom(testLogger) { events =>
+        testParser.httpReads(correlationId).read("GET", testUrl, response)
 
-      verify(mockLogger, times(1)).info(expectedLogMessage)
+        val expectedLogMessage = logProcess(
+          testClassName,
+          "connector parser",
+          s"received an accepted when calling $testUrl",
+          Some(correlationId)
+        )
+        events.map(_.getMessage) should contain(expectedLogMessage)
+      }
     }
   }
 }

@@ -1,0 +1,231 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AuthenticateApplicationAction</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">controllers.actions</a>
+</div>
+
+<h1>Coverage Summary for Class: AuthenticateApplicationAction (controllers.actions)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AuthenticateApplicationAction</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AuthenticateApplicationAction$$anon$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; * Copyright 2024 HM Revenue &amp; Customs
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package controllers.actions
+&nbsp;
+&nbsp;import models.responses.{DefaultErrorResponse, ErrorInternalServerError, ErrorUnauthorized}
+&nbsp;import javax.inject.Inject
+&nbsp;import org.slf4j.MDC
+&nbsp;import play.api.libs.json.Json
+&nbsp;import play.api.mvc.Results.{InternalServerError, Unauthorized}
+&nbsp;import play.api.mvc._
+&nbsp;import play.api.{Configuration, Logger}
+&nbsp;import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+&nbsp;import uk.gov.hmrc.auth.core.{AuthConnector, AuthProvider, AuthProviders, AuthorisationException, AuthorisedFunctions}
+&nbsp;import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
+&nbsp;import uk.gov.hmrc.play.bootstrap.backend.controller.BackendHeaderCarrierProvider
+&nbsp;import utils.LoggerHelper._
+&nbsp;import scala.concurrent.{ExecutionContext, Future}
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;class AuthenticateApplicationAction @Inject()(</b>
+<b class="nc">&nbsp;  val authConnector: AuthConnector,</b>
+<b class="nc">&nbsp;  val parser: BodyParsers.Default</b>
+<b class="nc">&nbsp;)(implicit val executionContext: ExecutionContext) extends</b>
+&nbsp;  AuthorisedFunctions with ActionBuilder[Request, AnyContent]  with BackendHeaderCarrierProvider {
+<b class="nc">&nbsp;  val logger: Logger = Logger.apply(this.getClass.getSimpleName)</b>
+&nbsp;
+&nbsp;  private[actions] def updateContextWithRequestId(implicit hc: HeaderCarrier): Unit = {
+<b class="nc">&nbsp;    if(Option(MDC.getCopyOfContextMap).isEmpty || MDC.getCopyOfContextMap.isEmpty) {</b>
+<b class="nc">&nbsp;      hc.requestId.foreach(id =&gt; MDC.put(HeaderNames.xRequestId, id.value))</b>
+<b class="nc">&nbsp;      hc.sessionId.foreach(id =&gt; MDC.put(HeaderNames.xSessionId, id.value))</b>
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  override def invokeBlock[A](request: Request[A], block: Request[A] =&gt; Future[Result]): Future[Result] = {
+<b class="nc">&nbsp;    implicit val headerCarrier: HeaderCarrier = hc(request)</b>
+&nbsp;
+<b class="nc">&nbsp;    updateContextWithRequestId</b>
+<b class="nc">&nbsp;    authorised(AuthProviders(AuthProvider.StandardApplication)).retrieve(Retrievals.applicationId) {</b>
+<b class="nc">&nbsp;      case Some(_) =&gt;</b>
+<b class="nc">&nbsp;        block(request)</b>
+&nbsp;      case _ =&gt;
+<b class="nc">&nbsp;        logger.warn(</b>
+<b class="nc">&nbsp;          logProcess(&quot;AuthenticateApplicationAction&quot;, &quot;invokeBlock&quot;, &quot;no application id or application id not in request&quot;)</b>
+<b class="nc">&nbsp;        )</b>
+<b class="nc">&nbsp;        Future.successful(Unauthorized(Json.toJson[DefaultErrorResponse](ErrorUnauthorized)))</b>
+<b class="nc">&nbsp;    } recover {</b>
+<b class="nc">&nbsp;      case _: AuthorisationException =&gt;</b>
+<b class="nc">&nbsp;        logger.warn(</b>
+<b class="nc">&nbsp;          logProcess(&quot;AuthenticateApplicationAction&quot;, &quot;invokeBlock&quot;, &quot;no application id or application id not in request&quot;)</b>
+<b class="nc">&nbsp;        )</b>
+<b class="nc">&nbsp;        Unauthorized(Json.toJson[DefaultErrorResponse](ErrorUnauthorized))</b>
+<b class="nc">&nbsp;      case e: Throwable =&gt;</b>
+<b class="nc">&nbsp;        logger.warn(</b>
+<b class="nc">&nbsp;          logProcess(&quot;AuthenticateApplicationAction&quot;, &quot;invokeBlock&quot;, s&quot;an unexpected exception occurred: $e&quot;)</b>
+<b class="nc">&nbsp;        )</b>
+<b class="nc">&nbsp;        InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))</b>
+<b class="nc">&nbsp;    }</b>
+&nbsp;  }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-20 14:53</div>
+</div>
+</body>
+</html>

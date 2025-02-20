@@ -1,0 +1,313 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ValidationService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">services</a>
+</div>
+
+<h1>Coverage Summary for Class: ValidationService (services)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ValidationService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/110)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/63)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ValidationService$$anon$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/114)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/66)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; * Copyright 2024 HM Revenue &amp; Customs
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package services
+&nbsp;
+&nbsp;import com.github.fge.jackson.JsonLoader
+&nbsp;import com.github.fge.jsonschema.core.report.{ListReportProvider, LogLevel, ProcessingMessage, ProcessingReport}
+&nbsp;import com.github.fge.jsonschema.main.JsonSchemaFactory
+&nbsp;import com.google.inject.Inject
+&nbsp;import models.responses._
+&nbsp;import play.api.libs.json.{Json, _}
+&nbsp;
+&nbsp;import scala.jdk.CollectionConverters._
+&nbsp;
+<b class="nc">&nbsp;class ValidationService @Inject()(resources: ResourceService) {</b>
+&nbsp;
+<b class="nc">&nbsp;  private lazy val efSchema = resources.getFile(&quot;/schemas/efSchema.json&quot;)</b>
+<b class="nc">&nbsp;  private lazy val nRegSchema = resources.getFile(&quot;/schemas/nRegSchema.json&quot;)</b>
+<b class="nc">&nbsp;  private lazy val pRegSchema = resources.getFile(&quot;/schemas/pRegSchema.json&quot;)</b>
+<b class="nc">&nbsp;  private lazy val addDocumentSchemaNoClassType = resources.getFile(&quot;/schemas/addDocumentSchemaNoClassType.json&quot;)</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;  private val factory = JsonSchemaFactory</b>
+<b class="nc">&nbsp;    .newBuilder()</b>
+<b class="nc">&nbsp;    .setReportProvider(new ListReportProvider(LogLevel.ERROR, LogLevel.FATAL))</b>
+&nbsp;    .freeze()
+&nbsp;
+&nbsp;
+&nbsp;  private def validateInternallyAgainstSchema(schemaString: String, input: JsValue) = {
+<b class="nc">&nbsp;    val schemaJson = JsonLoader.fromString(schemaString)</b>
+<b class="nc">&nbsp;    val json = JsonLoader.fromString(Json.stringify(input))</b>
+<b class="nc">&nbsp;    val schema = factory.getJsonSchema(schemaJson)</b>
+<b class="nc">&nbsp;    schema.validate(json, true)</b>
+&nbsp;  }
+&nbsp;
+<b class="nc">&nbsp;  def getFieldName(processingMessage: ProcessingMessage, prefix: String = &quot;&quot;): String = {</b>
+<b class="nc">&nbsp;    processingMessage.asJson().get(&quot;instance&quot;).asScala.map(instanceName =&gt; prefix + instanceName.asText).headOption.getOrElse(&quot;Field cannot be found&quot;)</b>
+&nbsp;  }
+&nbsp;
+<b class="nc">&nbsp;  def getMissingFields(processingMessage: ProcessingMessage, prefix: String = &quot;&quot;): List[MissingField] = {</b>
+<b class="nc">&nbsp;    Option(processingMessage.asJson().get(&quot;missing&quot;)).map(_.asScala.map(</b>
+<b class="nc">&nbsp;      instanceName =&gt; MissingField(path = s&quot;${getFieldName(processingMessage, prefix)}/${instanceName.asText()}&quot;)</b>
+<b class="nc">&nbsp;    ).toList).getOrElse(List())</b>
+&nbsp;  }
+&nbsp;
+<b class="nc">&nbsp;  def getUnexpectedFields(processingMessage: ProcessingMessage, prefix: String = &quot;&quot;): List[UnexpectedField] = {</b>
+<b class="nc">&nbsp;    Option(processingMessage.asJson().get(&quot;unwanted&quot;)).map(_.asScala.map(</b>
+<b class="nc">&nbsp;      instanceName =&gt; UnexpectedField(path = s&quot;${getFieldName(processingMessage, prefix)}/${instanceName.asText()}&quot;)</b>
+<b class="nc">&nbsp;    ).toList).getOrElse(List())</b>
+&nbsp;  }
+&nbsp;
+<b class="nc">&nbsp;  def getFieldErrorsFromReport(report: ProcessingReport, prefix: String = &quot;&quot;): Seq[FieldError] = {</b>
+<b class="nc">&nbsp;    report.iterator.asScala.toList</b>
+&nbsp;      .flatMap {
+<b class="nc">&nbsp;        error =&gt;</b>
+<b class="nc">&nbsp;          val missingFields = getMissingFields(error, prefix)</b>
+<b class="nc">&nbsp;          val unexpectedFields = getUnexpectedFields(error, prefix)</b>
+<b class="nc">&nbsp;          if (missingFields.isEmpty &amp;&amp; unexpectedFields.isEmpty) {</b>
+&nbsp;            List(
+<b class="nc">&nbsp;              InvalidField(getFieldName(error, prefix))</b>
+&nbsp;            )
+&nbsp;          } else {
+<b class="nc">&nbsp;            if (missingFields.isEmpty) unexpectedFields else missingFields</b>
+&nbsp;          }
+&nbsp;      }
+&nbsp;  }
+&nbsp;
+&nbsp;  def validateDocType(docJson: JsValue): Either[BadRequestErrorResponse, Unit] = {
+&nbsp;    def getResult(schema: String): Either[BadRequestErrorResponse, Unit] = {
+<b class="nc">&nbsp;      val result = validateInternallyAgainstSchema(schema, (docJson \ &quot;documentMetadata&quot; \ &quot;classIndex&quot;).as[JsValue])</b>
+<b class="nc">&nbsp;      if (!result.isSuccess) {</b>
+<b class="nc">&nbsp;        Left(BadRequestErrorResponse(getFieldErrorsFromReport(result, &quot;/documentMetadata/classIndex&quot;), getClassDoc(docJson)))</b>
+&nbsp;      } else {
+<b class="nc">&nbsp;        Right(())</b>
+&nbsp;      }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    (docJson \ &quot;documentMetadata&quot; \ &quot;classIndex&quot;).validate[JsObject] match {</b>
+<b class="nc">&nbsp;      case JsSuccess(x, _) if x.keys(&quot;ef&quot;) =&gt; getResult(efSchema)</b>
+<b class="nc">&nbsp;      case JsSuccess(x, _) if x.keys(&quot;pReg&quot;) =&gt; getResult(pRegSchema)</b>
+<b class="nc">&nbsp;      case JsSuccess(x, _) if x.keys(&quot;nReg&quot;) =&gt; getResult(nRegSchema)</b>
+<b class="nc">&nbsp;      case JsError(errors) =&gt;</b>
+<b class="nc">&nbsp;        Left(mappingErrorResponse(errors.toSeq.map {</b>
+<b class="nc">&nbsp;          case (_, errors) =&gt;</b>
+<b class="nc">&nbsp;            (__ \ &quot;documentMetadata&quot; \ &quot;classIndex&quot;, errors.toSeq)</b>
+<b class="nc">&nbsp;        }, getClassDoc(docJson)))</b>
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  private def mappingErrorResponse(mappingErrors: Seq[(JsPath, Seq[JsonValidationError])], typeOfDoc: Option[String]): BadRequestErrorResponse = {
+<b class="nc">&nbsp;    val errors = mapErrors(mappingErrors)</b>
+<b class="nc">&nbsp;    BadRequestErrorResponse(errors, typeOfDoc)</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  private def mapErrors(mappingErrors: Seq[(JsPath, Seq[JsonValidationError])]) = {
+<b class="nc">&nbsp;    mappingErrors.map {</b>
+<b class="nc">&nbsp;      x =&gt; InvalidField(path = x._1.toString())</b>
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  def validateJsonObj(input: JsValue): Option[JsValue] = {
+<b class="nc">&nbsp;    input.asOpt[JsObject]</b>
+&nbsp;
+&nbsp;  }
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;  def validate(input: JsValue, docId: String = &quot;&quot;): Option[JsValue] = {</b>
+<b class="nc">&nbsp;    if (checkDocIdMatchesRegex(docId)) {</b>
+<b class="nc">&nbsp;      if (validateJsonObj(input).isDefined) {</b>
+<b class="nc">&nbsp;        val result = validateInternallyAgainstSchema(addDocumentSchemaNoClassType, input)</b>
+<b class="nc">&nbsp;        if (result.isSuccess) {</b>
+<b class="nc">&nbsp;          validateDocType(input)</b>
+<b class="nc">&nbsp;            .fold(invalid =&gt; Some(Json.toJson(invalid)), _ =&gt; None)</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;          Some(</b>
+<b class="nc">&nbsp;            Json.toJson[BadRequestErrorResponse](BadRequestErrorResponse(getFieldErrorsFromReport(result), None))</b>
+&nbsp;          )
+&nbsp;        }
+&nbsp;      }
+&nbsp;      else {
+<b class="nc">&nbsp;        Some(Json.toJson[OtherError](InvalidJsonType()))</b>
+&nbsp;      }
+&nbsp;
+&nbsp;    } else {
+<b class="nc">&nbsp;      Some(</b>
+<b class="nc">&nbsp;        Json.toJson[OtherError] (InvalidDocId())</b>
+&nbsp;      )
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  def getClassDoc(toFindIn: JsValue): Option[String] = {
+<b class="nc">&nbsp;    List(&quot;ef&quot;, &quot;nReg&quot;, &quot;pReg&quot;).collectFirst {</b>
+<b class="nc">&nbsp;      case el if (toFindIn \ &quot;documentMetadata&quot; \ &quot;classIndex&quot;).asOpt[JsObject]</b>
+<b class="nc">&nbsp;        .fold(ifEmpty = false)(classIndex =&gt; classIndex.keys(el)) =&gt; el</b>
+&nbsp;
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  def checkDocIdMatchesRegex(docId: String): Boolean = {
+<b class="nc">&nbsp;    docId.matches(&quot;^(([0-9]{1,19})|(1[0-7][0-9]{18})|(18[0-3][0-9]{17})|(184[0-3][0-9]{16}))$&quot;)</b>
+&nbsp;  }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-20 14:53</div>
+</div>
+</body>
+</html>
