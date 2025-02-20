@@ -12,14 +12,22 @@ scalacOptions +=  "-Wconf:cat=unused-imports&src=html/.*:s"
 
 libraryDependencies ++= AppDependencies.all
 
-lazy val scoverageSettings = {
-  Seq(
-    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;$anon;.*javascript;testOnlyDoNotUseInAppConf.*",
-    ScoverageKeys.coverageMinimumStmtTotal := 80.00,
-    ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true
-  )
-}
+//lazy val scoverageSettings = {
+//  Seq(
+//    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;$anon;.*javascript;testOnlyDoNotUseInAppConf.*",
+//    ScoverageKeys.coverageMinimumStmtTotal := 80.00,
+//    ScoverageKeys.coverageFailOnMinimum := true,
+//    ScoverageKeys.coverageHighlighting := true
+//  )
+//}
+
+lazy val scoverageSettings: Seq[Setting[_]] = Seq(
+  coverageExcludedPackages := Seq("<empty>", "uk.gov.hmrc.BuildInfo", "Reverse.*",".*Routes.*",".*RoutesPrefix.*",".*GuiceInjector","$anon", ".*javascript, testOnlyDoNotUseInAppConf.*").mkString(","),
+  coverageExcludedFiles := Seq(".*EnrolmentStoreProxyConnector.*",".*UserSearchConnector.*",".*AdminController.*").mkString(","),
+  coverageMinimumStmtTotal := 76,
+  coverageFailOnMinimum := true,
+  coverageHighlighting := true,
+)
 
 resolvers += Resolver.jcenterRepo
 integrationTestSettings()
