@@ -22,10 +22,8 @@ import uk.gov.hmrc.http.HttpResponse
 import utils.LoggerHelper.logProcess
 import scala.utils.BaseSpec.SpecBase
 import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.play.bootstrap.tools.{LogCapturing}
+import uk.gov.hmrc.play.bootstrap.tools.LogCapturing
 import play.api.Logger
-import play.api.LoggerLike
-import org.slf4j.LoggerFactory
 import org.scalatest.matchers.should.Matchers.should
 
 class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar with LogCapturing {
@@ -33,25 +31,19 @@ class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar 
   val testClassName = "TestComplianceDocumentsConnectorParser"
   val testUrl = "http://test-url"
 
-  class TestLogger extends LoggerLike {
-     override val logger: Logger = Logger("test-logger")
-     
-    def logbackLogger: Logger = LoggerFactory.getLogger("test-logger").asInstanceOf[Logger]
-  }
-
   "ComplianceDocumentsConnectorParser" - {
 
     "log a warning for NOT_FOUND status" in {
       val correlationId = "testCorrelationId"
-      val testLogger = new TestLogger
+      val testLogger = Logger("test-logger")
       val testParser = new ComplianceDocumentsConnectorParser {
         override val className: String = "TestComplianceDocumentsConnectorParser"
-        override val logger = testLogger.logger
+        override val logger = testLogger
       }
 
       val response = HttpResponse(NOT_FOUND, "")
 
-      withCaptureOfLoggingFrom(testLogger.logbackLogger) { events =>
+      withCaptureOfLoggingFrom(testLogger) { events =>
         testParser.httpReads(correlationId).read("GET", testUrl, response)
 
         val expectedLogMessage = logProcess(
@@ -66,15 +58,15 @@ class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar 
 
     "log a warning for BAD_REQUEST status" in {
       val correlationId = "testCorrelationId"
-      val testLogger = new TestLogger
+      val testLogger = Logger("test-logger")
       val testParser = new ComplianceDocumentsConnectorParser {
         override val className: String = "TestComplianceDocumentsConnectorParser"
-        override val logger = testLogger.logger
+        override val logger = testLogger
       }
 
       val response = HttpResponse(BAD_REQUEST, "")
 
-      withCaptureOfLoggingFrom(testLogger.logbackLogger) { events =>
+      withCaptureOfLoggingFrom(testLogger) { events =>
         testParser.httpReads(correlationId).read("GET", testUrl, response)
 
         val expectedLogMessage = logProcess(
@@ -89,15 +81,15 @@ class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar 
 
     "log a warning for unexpected status (e.g., 500 status)" in {
       val correlationId = "testCorrelationId"
-      val testLogger = new TestLogger
+      val testLogger = Logger("test-logger")
       val testParser = new ComplianceDocumentsConnectorParser {
         override val className: String = "TestComplianceDocumentsConnectorParser"
-        override val logger = testLogger.logger
+        override val logger = testLogger
       }
 
       val response = HttpResponse(INTERNAL_SERVER_ERROR, "")
 
-      withCaptureOfLoggingFrom(testLogger.logbackLogger) { events =>
+      withCaptureOfLoggingFrom(testLogger) { events =>
         testParser.httpReads(correlationId).read("GET", testUrl, response)
 
         val expectedLogMessage = logProcess(
@@ -112,15 +104,15 @@ class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar 
 
     "log an info message for ACCEPTED status" in {
       val correlationId = "testCorrelationId"
-      val testLogger = new TestLogger
+      val testLogger = Logger("test-logger")
       val testParser = new ComplianceDocumentsConnectorParser {
         override val className: String = "TestComplianceDocumentsConnectorParser"
-        override val logger = testLogger.logger
+        override val logger = testLogger
       }
 
       val response = HttpResponse(ACCEPTED, "")
 
-      withCaptureOfLoggingFrom(testLogger.logbackLogger) { events =>
+      withCaptureOfLoggingFrom(testLogger) { events =>
         testParser.httpReads(correlationId).read("GET", testUrl, response)
 
         val expectedLogMessage = logProcess(

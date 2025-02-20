@@ -22,10 +22,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import test.helpers.{Fixtures, WireMockSpec}
-import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
-import play.api.libs.ws.JsonBodyReadables.readableAsJson
-import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
-import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 import play.api.libs.ws.writeableOf_JsValue
 
 

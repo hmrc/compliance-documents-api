@@ -17,7 +17,6 @@
 package controllers.actions
 
 import models.responses.{DefaultErrorResponse, ErrorInternalServerError, ErrorUnauthorized}
-
 import javax.inject.Inject
 import org.slf4j.MDC
 import play.api.libs.json.Json
@@ -33,9 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 class AuthenticateApplicationAction @Inject()(
-                                               val authConnector: AuthConnector,
-                                               val parser: BodyParsers.Default
-                                             )(implicit val executionContext: ExecutionContext) extends
+  val authConnector: AuthConnector,
+  val parser: BodyParsers.Default
+  )(implicit val executionContext: ExecutionContext) extends
   AuthorisedFunctions with ActionBuilder[Request, AnyContent]  with BackendHeaderCarrierProvider {
   val logger: Logger = Logger.apply(this.getClass.getSimpleName)
 
@@ -71,7 +70,4 @@ class AuthenticateApplicationAction @Inject()(
         InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))
     }
   }
-
-
-
 }
