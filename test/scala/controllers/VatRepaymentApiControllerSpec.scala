@@ -41,7 +41,6 @@ import scala.concurrent.Future
 import scala.exampleData.VatDocumentExample._
 
 class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
-  //  implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = None)
 
   class Setup(validationErrors: Option[JsValue] = None, serverError: Boolean = false,
               validBody: Option[JsValue]) {

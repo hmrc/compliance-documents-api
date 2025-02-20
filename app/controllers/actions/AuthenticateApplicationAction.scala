@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthenticateApplicationAction @Inject()(
   val authConnector: AuthConnector,
   val parser: BodyParsers.Default
-  )(implicit val executionContext: ExecutionContext) extends
+)(implicit val executionContext: ExecutionContext) extends
   AuthorisedFunctions with ActionBuilder[Request, AnyContent]  with BackendHeaderCarrierProvider {
   val logger: Logger = Logger.apply(this.getClass.getSimpleName)
 
