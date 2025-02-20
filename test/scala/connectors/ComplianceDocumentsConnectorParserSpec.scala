@@ -17,19 +17,15 @@
 package scala.connectors
 
 import connectors.httpParsers.ComplianceDocumentsConnectorParser
-import org.apache.pekko.event.Logging
 import play.api.http.Status.*
 import uk.gov.hmrc.http.HttpResponse
 import utils.LoggerHelper.logProcess
-
 import scala.utils.BaseSpec.SpecBase
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.play.bootstrap.tools.{LogCapturing}
 import play.api.Logger
 import play.api.LoggerLike
 import org.slf4j.LoggerFactory
-import ch.qos.logback.classic.Logger as Logger2
-import org.apache.pekko.event.Logging.LogEvent
 import org.scalatest.matchers.should.Matchers.should
 
 class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar with LogCapturing {
@@ -38,9 +34,9 @@ class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar 
   val testUrl = "http://test-url"
 
   class TestLogger extends LoggerLike {
-     override val logger: Logger2 = Logger("test-logger")
+     override val logger: Logger = Logger("test-logger")
      
-    def logbackLogger: Logger2 = LoggerFactory.getLogger("test-logger").asInstanceOf[Logger2]
+    def logbackLogger: Logger = LoggerFactory.getLogger("test-logger").asInstanceOf[Logger]
   }
 
   "ComplianceDocumentsConnectorParser" - {
