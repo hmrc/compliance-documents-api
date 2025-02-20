@@ -38,10 +38,8 @@ class ComplianceDocumentsConnectorParserSpec extends SpecBase with MockitoSugar 
   val testUrl = "http://test-url"
 
   class TestLogger extends LoggerLike {
-    // Create a play.api.Logger directly
      override val logger: Logger2 = Logger("test-logger")
-
-    // Use the SLF4J logger for log capturing
+     
     def logbackLogger: Logger2 = LoggerFactory.getLogger("test-logger").asInstanceOf[Logger2]
   }
 
