@@ -1,0 +1,234 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ComplianceDocumentsConnector</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">connectors</a>
+</div>
+
+<h1>Coverage Summary for Class: ComplianceDocumentsConnector (connectors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ComplianceDocumentsConnector</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/86)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ComplianceDocumentsConnector$$anon$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/92)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; * Copyright 2024 HM Revenue &amp; Customs
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package connectors
+&nbsp;
+&nbsp;import connectors.httpParsers.ComplianceDocumentsConnectorParser
+&nbsp;import play.api.http.Status._
+&nbsp;import javax.inject._
+&nbsp;import play.api.http.{ContentTypes, HeaderNames}
+&nbsp;import play.api.libs.json.JsValue
+&nbsp;import play.api.{Configuration, Logger}
+&nbsp;import uk.gov.hmrc.http.client.HttpClientV2
+&nbsp;import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+&nbsp;import utils.LoggerHelper
+&nbsp;import uk.gov.hmrc.http.HttpReads.Implicits._
+&nbsp;import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+&nbsp;
+&nbsp;import scala.concurrent.{ExecutionContext, Future}
+&nbsp;
+<b class="nc">&nbsp;class ComplianceDocumentsConnector @Inject()(</b>
+&nbsp;  httpClient: HttpClientV2,
+&nbsp;  config: Configuration
+<b class="nc">&nbsp;) extends ComplianceDocumentsConnectorParser {</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;  override val className: String = this.getClass.getSimpleName</b>
+<b class="nc">&nbsp;  override val logger: Logger = Logger(this.getClass)</b>
+&nbsp;
+<b class="nc">&nbsp;  lazy val bearerToken: String = config.get[String](&quot;integration-framework.auth-token&quot;)</b>
+<b class="nc">&nbsp;  lazy val iFEnvironment: String = config.get[String](&quot;integration-framework.environment&quot;)</b>
+<b class="nc">&nbsp;  lazy val ifBaseUrl: String = config.get[String](&quot;integration-framework.base-url&quot;)</b>
+<b class="nc">&nbsp;  lazy val vatRepaymentUri: String = config.get[String](&quot;integration-framework.endpoints.vat-repayment-info&quot;)</b>
+&nbsp;
+&nbsp;  def vatRepayment(request: JsValue, correlationId: String, documentId: String)
+&nbsp;                  (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[HttpResponse]] = {
+<b class="nc">&nbsp;    val url = s&quot;$ifBaseUrl$vatRepaymentUri/$documentId&quot;</b>
+&nbsp;    val customHeaders = Seq(
+<b class="nc">&nbsp;      HeaderNames.CONTENT_TYPE -&gt; ContentTypes.JSON,</b>
+<b class="nc">&nbsp;      &quot;CorrelationId&quot; -&gt; correlationId,</b>
+<b class="nc">&nbsp;      &quot;Environment&quot; -&gt; iFEnvironment,</b>
+<b class="nc">&nbsp;      &quot;Authorization&quot; -&gt; s&quot;Bearer $bearerToken&quot;</b>
+&nbsp;    )
+&nbsp;
+<b class="nc">&nbsp;    httpClient.post(url&quot;$url&quot;)</b>
+<b class="nc">&nbsp;      .withBody(request)</b>
+<b class="nc">&nbsp;      .setHeader(customHeaders: _*)</b>
+<b class="nc">&nbsp;      .execute[HttpResponse]</b>
+<b class="nc">&nbsp;      .map { response =&gt;</b>
+<b class="nc">&nbsp;        response.status match {</b>
+<b class="nc">&nbsp;          case ACCEPTED =&gt; Some(response)</b>
+<b class="nc">&nbsp;          case BAD_REQUEST | UNAUTHORIZED =&gt; None</b>
+<b class="nc">&nbsp;          case _ =&gt; None</b>
+&nbsp;        }
+<b class="nc">&nbsp;      }</b>
+<b class="nc">&nbsp;      .recover {</b>
+<b class="nc">&nbsp;        case e: Exception =&gt;</b>
+<b class="nc">&nbsp;          logger.error(LoggerHelper.logProcess(&quot;ComplianceDocumentsConnector&quot;, &quot;vatRepayment&quot;,</b>
+<b class="nc">&nbsp;            s&quot;Exception from when trying to talk to $ifBaseUrl$vatRepaymentUri - ${e.getMessage} &quot; +</b>
+<b class="nc">&nbsp;              s&quot;(IF_VAT_REPAYMENT_ENDPOINT_UNEXPECTED_EXCEPTION)&quot; + e, Some(correlationId), Some(request)))</b>
+<b class="nc">&nbsp;          None</b>
+<b class="nc">&nbsp;      }</b>
+&nbsp;  }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-20 14:53</div>
+</div>
+</body>
+</html>

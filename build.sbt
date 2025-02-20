@@ -14,7 +14,7 @@ libraryDependencies ++= AppDependencies.all
 
 lazy val scoverageSettings = {
   Seq(
-    ScoverageKeys.coverageExcludedFiles := Seq("<empty>","Reverse.*",".*Routes.*",".*GuiceInjector","$anon", ".*javascript","testOnlyDoNotUseInAppConf.*").mkString(";"),
+    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*Routes.*;.*GuiceInjector;$anon;.*javascript;testOnlyDoNotUseInAppConf.*",
     ScoverageKeys.coverageMinimumStmtTotal := 80.00,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true

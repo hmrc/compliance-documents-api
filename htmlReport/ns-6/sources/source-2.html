@@ -1,0 +1,193 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > VatRepaymentApiController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">controllers</a>
+</div>
+
+<h1>Coverage Summary for Class: VatRepaymentApiController (controllers)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">VatRepaymentApiController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; * Copyright 2024 HM Revenue &amp; Customs
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *     http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package controllers
+&nbsp;
+&nbsp;import connectors.ComplianceDocumentsConnector
+&nbsp;import controllers.actions.{AuthenticateApplicationAction, ValidateCorrelationIdHeaderAction}
+&nbsp;import models.responses.{DefaultErrorResponse, ErrorInternalServerError}
+&nbsp;
+&nbsp;import javax.inject._
+&nbsp;import play.api.Logging
+&nbsp;import play.api.http.ContentTypes
+&nbsp;import play.api.libs.json.Json
+&nbsp;import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+&nbsp;import services.ValidationService
+&nbsp;import uk.gov.hmrc.http.HttpResponse
+&nbsp;import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+&nbsp;import utils.LoggerHelper
+&nbsp;import utils.LoggerHelper._
+&nbsp;
+&nbsp;import scala.concurrent.{ExecutionContext, Future}
+&nbsp;
+<b class="nc">&nbsp;class VatRepaymentApiController @Inject()(</b>
+&nbsp;  validator: ValidationService,
+&nbsp;  complianceDocumentsConnector: ComplianceDocumentsConnector,
+&nbsp;  getCorrelationId: ValidateCorrelationIdHeaderAction,
+&nbsp;  authenticateApplication: AuthenticateApplicationAction,
+&nbsp;  cc: ControllerComponents
+<b class="nc">&nbsp;)(implicit ec: ExecutionContext) extends BackendController(cc) with Logging {</b>
+&nbsp;
+&nbsp;
+<b class="nc">&nbsp;  def postRepaymentData(documentId: String): Action[AnyContent] = (authenticateApplication andThen getCorrelationId).async { implicit request =&gt;</b>
+&nbsp;
+<b class="nc">&nbsp;    val input = request.body.asJson.getOrElse(Json.parse(&quot;{}&quot;))</b>
+&nbsp;
+<b class="nc">&nbsp;    logger.info(logProcess(&quot;VatRepaymentApiController&quot;,</b>
+<b class="nc">&nbsp;      &quot;postRepaymentData&quot;,</b>
+<b class="nc">&nbsp;      s&quot;Post request received&quot;,</b>
+<b class="nc">&nbsp;      Some(request.correlationId),</b>
+<b class="nc">&nbsp;      Some(input)))</b>
+<b class="nc">&nbsp;    validator.validate(input, documentId) match {</b>
+<b class="nc">&nbsp;      case None =&gt;</b>
+<b class="nc">&nbsp;        logger.info(logProcess(&quot;VatRepaymentApiController&quot;, &quot;postRepaymentData: Right&quot;,</b>
+<b class="nc">&nbsp;          s&quot;Request received - passing on to IF&quot;, Some(request.correlationId), Some(input)))</b>
+<b class="nc">&nbsp;        complianceDocumentsConnector.vatRepayment(input, request.correlationId, documentId).map {</b>
+<b class="nc">&nbsp;          el =&gt;</b>
+<b class="nc">&nbsp;            el.map(response =&gt; responseMapper(response)) getOrElse InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))</b>
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;      case Some(errors) =&gt;</b>
+<b class="nc">&nbsp;        logger.info(LoggerHelper.logProcess(&quot;VatRepaymentApiController&quot;, &quot;postRepaymentData: Left&quot;,</b>
+<b class="nc">&nbsp;          s&quot;request body didn&#39;t match json with errors: ${Json.prettyPrint(errors)}&quot;,</b>
+<b class="nc">&nbsp;          Some(request.correlationId), Some(input)))</b>
+<b class="nc">&nbsp;        Future.successful(BadRequest(errors))</b>
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  private def responseMapper(response: HttpResponse): Result = {
+<b class="nc">&nbsp;    Status(response.status)</b>
+&nbsp;
+<b class="nc">&nbsp;      .as(ContentTypes.JSON)</b>
+<b class="nc">&nbsp;  }</b>
+&nbsp;
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-20 14:53</div>
+</div>
+</body>
+</html>
