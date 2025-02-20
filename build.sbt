@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 val appName = "compliance-documents-api"
 
 majorVersion := 0
-scalaVersion := "2.13.12"
+scalaVersion := "3.3.4"
 
 scalacOptions += "-Xlint:-missing-interpolator"
 scalacOptions += "-Wconf:src=routes/.*:s"

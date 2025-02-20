@@ -26,13 +26,14 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import utils.LoggerHelper
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class ComplianceDocumentsConnector @Inject()(
-  httpClient: HttpClientV2,
-  config: Configuration
-) extends ComplianceDocumentsConnectorParser {
+                                              httpClient: HttpClientV2,
+                                              config: Configuration
+                                            ) extends ComplianceDocumentsConnectorParser {
 
 
   override val className: String = this.getClass.getSimpleName

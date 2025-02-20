@@ -29,14 +29,13 @@ import uk.gov.hmrc.auth.core.{AuthConnector, AuthProvider, AuthProviders, Author
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendHeaderCarrierProvider
 import utils.LoggerHelper._
-
 import scala.concurrent.{ExecutionContext, Future}
 
 
 class AuthenticateApplicationAction @Inject()(
-  val authConnector: AuthConnector,
-  val parser: BodyParsers.Default
-)(implicit val executionContext: ExecutionContext) extends
+                                               val authConnector: AuthConnector,
+                                               val parser: BodyParsers.Default
+                                             )(implicit val executionContext: ExecutionContext) extends
   AuthorisedFunctions with ActionBuilder[Request, AnyContent]  with BackendHeaderCarrierProvider {
   val logger: Logger = Logger.apply(this.getClass.getSimpleName)
 
@@ -72,5 +71,7 @@ class AuthenticateApplicationAction @Inject()(
         InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))
     }
   }
+
+
 
 }
