@@ -22,6 +22,8 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import test.helpers.{Fixtures, WireMockSpec}
+import play.api.libs.ws.writeableOf_JsValue
+
 
 import scala.concurrent.duration.Duration
 
@@ -70,7 +72,7 @@ class VatRepaymentISpec extends AnyWordSpec with Matchers with WireMockSpec with
         .post(createRepaymentDocumentJson))
 
       response.status mustBe UNAUTHORIZED
-      response.body mustBe """{"code":"UNAUTHORIZED","message":"Bearer token is missing or not authorized"}"""
+      response.body.toString mustBe """{"code":"UNAUTHORIZED","message":"Bearer token is missing or not authorized"}"""
 
     }
 
@@ -87,7 +89,7 @@ class VatRepaymentISpec extends AnyWordSpec with Matchers with WireMockSpec with
         .post(createRepaymentDocumentJson))
 
       response.status mustBe INTERNAL_SERVER_ERROR
-      response.body mustBe """{"code":"INTERNAL_SERVER_ERROR","message":"Internal server error"}"""
+      response.body.toString mustBe """{"code":"INTERNAL_SERVER_ERROR","message":"Internal server error"}"""
     }
   }
 }

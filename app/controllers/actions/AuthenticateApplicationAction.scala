@@ -17,7 +17,6 @@
 package controllers.actions
 
 import models.responses.{DefaultErrorResponse, ErrorInternalServerError, ErrorUnauthorized}
-
 import javax.inject.Inject
 import org.slf4j.MDC
 import play.api.libs.json.Json
@@ -29,7 +28,6 @@ import uk.gov.hmrc.auth.core.{AuthConnector, AuthProvider, AuthProviders, Author
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendHeaderCarrierProvider
 import utils.LoggerHelper._
-
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -72,5 +70,4 @@ class AuthenticateApplicationAction @Inject()(
         InternalServerError(Json.toJson[DefaultErrorResponse](ErrorInternalServerError))
     }
   }
-
 }

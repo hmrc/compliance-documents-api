@@ -23,6 +23,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
 import play.api.test.Helpers.OK
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import play.api.libs.ws.readableAsJson
 
 class DefinitionControllerISpec extends PlaySpec with Matchers with GuiceOneServerPerSuite with FutureAwaits with DefaultAwaitTimeout {
 
