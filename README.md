@@ -6,6 +6,11 @@ Part of the MDTP Investigation & Detection Risking Service (IDRS) APIs
 To run the service, in the repository's main directory, run `sbt run` - 7053 is the port the service is intended to run on.
 You need to be a standard application to be able to use this API.
 
+Start the service via service manager profile:
+```
+sm2 --start IDRS_ALL  
+```
+
 ### Routes
     POST /vat-repayment-info/{document-id}
     
