@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 val appName = "compliance-documents-api"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "3.6.4"
+ThisBuild / scalaVersion := "3.7.1"
 
 
 lazy val scoverageSettings = {
@@ -29,7 +29,7 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= AppDependencies.all,
     // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
     // suppress warnings in generated routes files
-    scalacOptions += s"-Wconf:msg=unused import:s,msg=unused explicit parameter:s,src=.*[\\\\/]routes[\\\\/].*:s",
+    scalacOptions += s"-Wconf:msg=unused import:s,msg=unused explicit parameter:s,msg=unused local definition:s,src=.*[\\\\/]routes[\\\\/].*:s",
     Compile / scalacOptions --= Seq("-deprecation","-unchecked","-encoding","UTF-8"),
     Test    / scalacOptions --= Seq("-deprecation","-unchecked","-encoding","UTF-8")
   )

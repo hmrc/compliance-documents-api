@@ -22,7 +22,7 @@ import org.slf4j.MDC
 import play.api.libs.json.Json
 import play.api.mvc.Results.{InternalServerError, Unauthorized}
 import play.api.mvc._
-import play.api.{Configuration, Logger}
+import play.api.Logger
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProvider, AuthProviders, AuthorisationException, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
@@ -46,7 +46,7 @@ class AuthenticateApplicationAction @Inject()(
   }
 
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
-    implicit val headerCarrier: HeaderCarrier = hc(request)
+    implicit val headerCarrier: HeaderCarrier = hc(using request)
 
     updateContextWithRequestId
     authorised(AuthProviders(AuthProvider.StandardApplication)).retrieve(Retrievals.applicationId) {

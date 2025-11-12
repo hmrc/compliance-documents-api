@@ -17,7 +17,7 @@
 package scala.controllers
 
 import connectors.ComplianceDocumentsConnector
-import controllers.actions.{AuthenticateApplicationAction, RequestWithCorrelationId, ValidateCorrelationIdHeaderAction}
+import controllers.actions.{RequestWithCorrelationId, ValidateCorrelationIdHeaderAction}
 import controllers.{VatRepaymentApiController, routes}
 
 import scala.concurrent.ExecutionContext
@@ -25,13 +25,12 @@ import scala.language.postfixOps
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{AnyContent, BodyParsers, ControllerComponents, Request, Result}
+import play.api.mvc.{BodyParsers, ControllerComponents, Request, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ValidationService
 import uk.gov.hmrc.http.HttpResponse
 import utils.LoggerHelper
-import org.mockito.Mockito.{times, verify}
 import controllers.actions.AuthenticateApplicationAction
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.when
@@ -55,7 +54,7 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with Mocki
     object StubbedCorrelationIdAction extends ValidateCorrelationIdHeaderAction(
       new BodyParsers.Default(stubControllerComponents().parsers)
     )(
-      stubControllerComponents().executionContext
+      using stubControllerComponents().executionContext
     ) {
       override def invokeBlock[A](request: Request[A], block: RequestWithCorrelationId[A] => Future[Result]): Future[Result] = {
         block(RequestWithCorrelationId(request, correlationId))
@@ -82,7 +81,7 @@ class VatRepaymentApiControllerSpec extends AnyWordSpec with Matchers with Mocki
           ArgumentMatchers.eq(validBody.get),
           ArgumentMatchers.eq(correlationId),
           ArgumentMatchers.eq(documentId)
-        )(ArgumentMatchers.any(), ArgumentMatchers.any())
+        )(using ArgumentMatchers.any(), ArgumentMatchers.any())
       ).thenReturn(Future.successful(connectorResponse))
     }
     when(mockValidation.validate(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(validationErrors)

@@ -21,13 +21,13 @@ import controllers.definition.ApiDocumentationController
 import models.definition.ApiDefinition
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar.mock
-import org.scalatestplus.play._
-import play.api.Configuration
+import org.scalatestplus.play.*
+import play.api.{Configuration, Environment}
 import play.api.http.DefaultHttpErrorHandler
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, DefaultActionBuilder, Results}
-import play.api.test.Helpers._
-import play.api.test._
+import play.api.test.Helpers.*
+import play.api.test.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -72,6 +72,7 @@ class ApiDocumentationControllerSpec
         "apiDefinition.status" -> "ALPHA",
         "apiDefinition.endpointsEnabled" -> false
       )
+      val env = Environment
       val controller = createController(config)
 
       val result = controller.definition().apply(FakeRequest())
@@ -85,11 +86,13 @@ class ApiDocumentationControllerSpec
 
   private def createController(config: Configuration) = {
     val mockAssetsMetadata = mock[AssetsMetadata]
+    val env = mock[Environment]
     new ApiDocumentationController(
       DefaultActionBuilder(stubBodyParser[AnyContent]()),
       DefaultHttpErrorHandler,
       mockAssetsMetadata,
-      config
+      config,
+      env
     )
   }
 }

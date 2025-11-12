@@ -25,7 +25,6 @@ import play.api.mvc.Results.Ok
 import play.api.mvc.{BodyParsers, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.{ConfigLoader, Configuration}
 import uk.gov.hmrc.auth.core.AuthProvider.StandardApplication
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
@@ -80,7 +79,7 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
 
   "action.async" should {
     s"return a $OK if application is authorised as a StandardApplication" in new Setup {
-      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(using _:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.successful(Some("ID-BEINGCHECKED")))
 
@@ -90,7 +89,7 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
       contentAsJson(result) shouldBe Json.obj()
     }
     s"return a $UNAUTHORIZED if not authorised by auth" in new Setup {
-      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(using _:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.failed(BearerTokenExpired("an exception has occurred")))
 
@@ -101,7 +100,7 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
       contentAsJson(result) shouldBe Json.obj("code" -> "UNAUTHORIZED", "message" -> "Bearer token is missing or not authorized")
     }
     s"return a $UNAUTHORIZED if no application id is present" in new Setup {
-      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(using _:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.successful(None))
 
@@ -112,7 +111,7 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
     }
 
     s"return a $INTERNAL_SERVER_ERROR if an unexpected exception occurs" in new Setup {
-      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(using _:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.failed(new NullPointerException("error")))
 
@@ -124,7 +123,7 @@ class AuthenticateApplicationActionSpec extends AnyWordSpec with Matchers with M
 
     "allow an updateContextWithRequestId to work" in new Setup {
 
-      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(_:HeaderCarrier,_:ExecutionContext))
+      (mockAuthConnector.authorise[Option[String]](_:Predicate,_:Retrieval[Option[String]])(using _:HeaderCarrier,_:ExecutionContext))
         .expects(AuthProviders(StandardApplication),Retrievals.applicationId,*,*)
         .returns(Future.successful(Some("ID-BEINGCHECKED")))
 
