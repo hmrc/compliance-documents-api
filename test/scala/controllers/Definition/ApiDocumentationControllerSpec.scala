@@ -72,7 +72,6 @@ class ApiDocumentationControllerSpec
         "apiDefinition.status" -> "ALPHA",
         "apiDefinition.endpointsEnabled" -> false
       )
-      val env = Environment
       val controller = createController(config)
 
       val result = controller.definition().apply(FakeRequest())
