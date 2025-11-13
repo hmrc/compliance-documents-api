@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 val appName = "compliance-documents-api"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "3.6.4"
+ThisBuild / scalaVersion := "3.7.1"
 
 
 lazy val scoverageSettings = {
