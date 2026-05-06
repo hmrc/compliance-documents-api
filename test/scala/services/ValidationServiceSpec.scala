@@ -107,7 +107,7 @@ class ValidationServiceSpec extends AnyWordSpec with Matchers with MockFactory {
       assert(resultOfBadOne.isDefined)
       resultOfBadOne.get shouldBe Json.parse(
         """
-          |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"}]}
+          |{"code":"INVALID_PAYLOAD","message":"Submission has not passed validation. Invalid payload.","errors":[{"code":"INVALID_FIELD","message":"Invalid value in field","path":"/documentMetadata/classIndex"},{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentMetadata/classIndex/ef"},{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentMetadata/classIndex/nReg"},{"code":"MISSING_FIELD","message":"Expected field not present","path":"/documentMetadata/classIndex/pReg"}]}
           |""".stripMargin
       )
 
