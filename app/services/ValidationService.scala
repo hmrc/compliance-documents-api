@@ -52,9 +52,9 @@ class ValidationService @Inject()(resources: ResourceService) {
     if (processingMessage.getKeyword == "required") {
       Option(processingMessage.getProperty).map(
         instanceName => List(MissingField(path = s"${getFieldName(processingMessage, prefix)}/$instanceName"))
-      ).getOrElse(List())
+      ).getOrElse(Nil)
     } else {
-      List()
+      Nil
     }
   }
 
@@ -62,14 +62,14 @@ class ValidationService @Inject()(resources: ResourceService) {
     if (processingMessage.getKeyword == "additionalProperties") {
       Option(processingMessage.getProperty).map(
         instanceName => List(UnexpectedField(path = s"${getFieldName(processingMessage, prefix)}/$instanceName"))
-      ).getOrElse(List())
+      ).getOrElse(Nil)
     } else {
-      List()
+      Nil
     }
   }
 
-  def getFieldErrorsFromReport(report: java.util.List[Error], prefix: String = ""): Seq[FieldError] = {
-    report.iterator.asScala.toList
+  def getFieldErrorsFromReport(errors: java.util.List[Error], prefix: String = ""): Seq[FieldError] = {
+    val result = errors.asScala.toList
       .flatMap {
         error =>
           val missingFields = getMissingFields(error, prefix)
@@ -81,9 +81,17 @@ class ValidationService @Inject()(resources: ResourceService) {
           } else {
             if (missingFields.isEmpty) unexpectedFields else missingFields
           }
-      }.sortBy(_.path)
-  }
+      }
+      .sortBy {
+        case _: MissingField => (0, "")
+        case _: UnexpectedField => (1, "")
+        case i: InvalidField => (2, i.path)
+      }
 
+    val invalidPaths = result.collect { case f: InvalidField => f.path }
+    result.filterNot(e => invalidPaths.exists(p => e.path.startsWith(p + "/")))
+  }
+  
   @nowarn("msg=match may not be exhaustive")
   def validateDocType(docJson: JsValue): Either[BadRequestErrorResponse, Unit] = {
     def getResult(schema: String): Either[BadRequestErrorResponse, Unit] = {
