@@ -16,9 +16,9 @@
 
 package services
 
-import com.github.fge.jackson.JsonLoader
-import com.github.fge.jsonschema.core.report.{ListReportProvider, LogLevel, ProcessingMessage, ProcessingReport}
-import com.github.fge.jsonschema.main.JsonSchemaFactory
+import com.networknt.schema.*
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.networknt.schema.{SchemaRegistry, SpecificationVersion}
 import com.google.inject.Inject
 import models.responses._
 import play.api.libs.json.{Json, _}
@@ -33,37 +33,43 @@ class ValidationService @Inject()(resources: ResourceService) {
   private lazy val addDocumentSchemaNoClassType = resources.getFile("/schemas/addDocumentSchemaNoClassType.json")
 
 
-  private val factory = JsonSchemaFactory
-    .newBuilder()
-    .setReportProvider(new ListReportProvider(LogLevel.ERROR, LogLevel.FATAL))
-    .freeze()
+  private val mapper: ObjectMapper = new ObjectMapper()
+  private val schemaRegistry: SchemaRegistry =
+    SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_4)
 
-
-  private def validateInternallyAgainstSchema(schemaString: String, input: JsValue) = {
-    val schemaJson = JsonLoader.fromString(schemaString)
-    val json = JsonLoader.fromString(Json.stringify(input))
-    val schema = factory.getJsonSchema(schemaJson)
-    schema.validate(json, true)
+  private def validateInternallyAgainstSchema(schemaString: String, input: JsValue): java.util.List[Error] = {
+    val schemaNode = mapper.readTree(schemaString)
+    val json = mapper.readTree(Json.stringify(input))
+    val schema = schemaRegistry.getSchema(schemaNode)
+    schema.validate(json)
   }
 
-  def getFieldName(processingMessage: ProcessingMessage, prefix: String = ""): String = {
-    processingMessage.asJson().get("instance").asScala.map(instanceName => prefix + instanceName.asText).headOption.getOrElse("Field cannot be found")
+  def getFieldName(processingMessage: Error, prefix: String = ""): String = {
+    Option(processingMessage.getInstanceLocation).map(instanceName => prefix + instanceName.toString).getOrElse("Field cannot be found")
   }
 
-  def getMissingFields(processingMessage: ProcessingMessage, prefix: String = ""): List[MissingField] = {
-    Option(processingMessage.asJson().get("missing")).map(_.asScala.map(
-      instanceName => MissingField(path = s"${getFieldName(processingMessage, prefix)}/${instanceName.asText()}")
-    ).toList).getOrElse(List())
+  def getMissingFields(processingMessage: Error, prefix: String = ""): List[MissingField] = {
+    if (processingMessage.getKeyword == "required") {
+      Option(processingMessage.getProperty).map(
+        instanceName => List(MissingField(path = s"${getFieldName(processingMessage, prefix)}/$instanceName"))
+      ).getOrElse(Nil)
+    } else {
+      Nil
+    }
   }
 
-  def getUnexpectedFields(processingMessage: ProcessingMessage, prefix: String = ""): List[UnexpectedField] = {
-    Option(processingMessage.asJson().get("unwanted")).map(_.asScala.map(
-      instanceName => UnexpectedField(path = s"${getFieldName(processingMessage, prefix)}/${instanceName.asText()}")
-    ).toList).getOrElse(List())
+  def getUnexpectedFields(processingMessage: Error, prefix: String = ""): List[UnexpectedField] = {
+    if (processingMessage.getKeyword == "additionalProperties") {
+      Option(processingMessage.getProperty).map(
+        instanceName => List(UnexpectedField(path = s"${getFieldName(processingMessage, prefix)}/$instanceName"))
+      ).getOrElse(Nil)
+    } else {
+      Nil
+    }
   }
 
-  def getFieldErrorsFromReport(report: ProcessingReport, prefix: String = ""): Seq[FieldError] = {
-    report.iterator.asScala.toList
+  def getFieldErrorsFromReport(errors: java.util.List[Error], prefix: String = ""): Seq[FieldError] = {
+    val result = errors.asScala.toList
       .flatMap {
         error =>
           val missingFields = getMissingFields(error, prefix)
@@ -76,13 +82,21 @@ class ValidationService @Inject()(resources: ResourceService) {
             if (missingFields.isEmpty) unexpectedFields else missingFields
           }
       }
-  }
+      .sortBy {
+        case _: MissingField => (0, "")
+        case _: UnexpectedField => (1, "")
+        case i: InvalidField => (2, i.path)
+      }
 
+    val invalidPaths = result.collect { case f: InvalidField => f.path }
+    result.filterNot(e => invalidPaths.exists(p => e.path.startsWith(p + "/")))
+  }
+  
   @nowarn("msg=match may not be exhaustive")
   def validateDocType(docJson: JsValue): Either[BadRequestErrorResponse, Unit] = {
     def getResult(schema: String): Either[BadRequestErrorResponse, Unit] = {
       val result = validateInternallyAgainstSchema(schema, (docJson \ "documentMetadata" \ "classIndex").as[JsValue])
-      if (!result.isSuccess) {
+      if (!result.isEmpty) {
         Left(BadRequestErrorResponse(getFieldErrorsFromReport(result, "/documentMetadata/classIndex"), getClassDoc(docJson)))
       } else {
         Right(())
@@ -122,7 +136,7 @@ class ValidationService @Inject()(resources: ResourceService) {
     if (checkDocIdMatchesRegex(docId)) {
       if (validateJsonObj(input).isDefined) {
         val result = validateInternallyAgainstSchema(addDocumentSchemaNoClassType, input)
-        if (result.isSuccess) {
+        if (result.isEmpty) {
           validateDocType(input)
             .fold(invalid => Some(Json.toJson(invalid)), _ => None)
         } else {
