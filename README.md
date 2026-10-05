@@ -10,7 +10,17 @@ Start the service via service manager profile:
 ```
 sm2 --start IDRS_ALL  
 ```
+### Integration tests
+Run the Integration tests with :
 
+```bash
+sbt it/test
+```
+To run both unit and integration tests:
+
+```bash
+sbt testAll
+```
 ### Routes
     POST /vat-repayment-info/{document-id}
     
