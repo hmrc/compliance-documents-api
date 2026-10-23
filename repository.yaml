@@ -3,3 +3,4 @@ digital-service: IDRS
 test-repositories:
   - compliance-documents-api-performance-tests
   - compliance-documents-api-tests
+serviceNowMapping: SNSVC0021726
