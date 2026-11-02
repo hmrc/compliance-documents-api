@@ -47,7 +47,7 @@ class DefinitionControllerISpec extends PlaySpec with Matchers with GuiceOneServ
            |        "version": "1.0",
            |        "status": "ALPHA",
            |        "endpointsEnabled": false,
-           |        "access" : "PUBLIC"
+           |        "access" : "INTERNAL"
            |      }
            |    ]
            |  }
